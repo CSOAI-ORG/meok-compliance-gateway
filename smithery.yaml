@@ -1,0 +1,8 @@
+runtime: container
+startCommand:
+  type: http
+  configSchema: {}
+build:
+  dockerfile: Dockerfile
+  dockerBuildArgs:
+    PKG: eu-ai-act-compliance-mcp
