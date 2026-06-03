@@ -61,9 +61,13 @@ jobs:
           python-version: "3.11"
 
       - name: Install gateway runtime + a real flagship
+        # Pin the flagship to the gold-standard version (1.8.1 as of 2026-06-03).
+        # Bump deliberately when the upstream release is tested against the gateway.
+        # Without the pin, a new flagship release can break the gateway's import
+        # chain (mcp SDK / FastMCP API surface) without warning.
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-gateway.txt eu-ai-act-compliance-mcp
+          pip install -c constraints.txt -r requirements-gateway.txt eu-ai-act-compliance-mcp==1.8.1
 
       - name: Boot gateway + run real e2e (initialize + tools/list + /healthz)
         run: |

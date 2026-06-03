@@ -1,0 +1,15 @@
+# Hard pin for the keystone gateway runtime.
+#
+# Mirrors requirements-gateway.txt — pip's constraints file format is stricter
+# than requirements (no extras allowed), so this pins the BARE package names.
+# The `uvicorn[standard]` extra in requirements-gateway.txt still pulls in
+# uvicorn's optional deps (uvloop, httptools, websockets); the constraint just
+# forces the base uvicorn version to 0.48.0, which is binary-compatible.
+#
+# Used in CI as: pip install -c constraints.txt -r requirements-gateway.txt <flagship>
+# pip refuses to upgrade an exact pin, so even if a flagship's loose `mcp>=1.0.0`
+# would resolve to a newer SDK, the gateway is forced to mcp==1.27.2.
+#
+# 2026-07-28 spec migration: bump BOTH files in lockstep, in a fleet-sync PR.
+mcp==1.27.2
+uvicorn==0.48.0

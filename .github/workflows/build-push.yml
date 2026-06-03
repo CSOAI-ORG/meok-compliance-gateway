@@ -54,6 +54,24 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check flagship exists on PyPI
+        # Fail loud with a useful error if the flagship wheel isn't published yet.
+        # A 404 from pip install is opaque; this gives the maintainer a hint.
+        run: |
+          /usr/bin/python3 - <<'PY' "${{ matrix.pkg }}"
+          import json, sys, urllib.request, urllib.error
+          pkg = sys.argv[1]
+          url = f"https://pypi.org/pypi/{pkg}/json"
+          try:
+              d = json.loads(urllib.request.urlopen(url, timeout=10).read())
+          except urllib.error.HTTPError as e:
+              if e.code == 404:
+                  print(f"::error::PyPI package '{pkg}' not found. Publish it first (see FLEET_BASE.md) or remove it from the matrix.")
+                  sys.exit(1)
+              raise
+          print(f"OK: {pkg} {d['info']['version']} ({d['urls'][0]['upload_time'] if d['urls'] else 'no files'})")
+          PY
+
       - name: Build and push ${{ matrix.flagship }}
         uses: docker/build-push-action@v6
         with:
@@ -69,3 +87,53 @@ jobs:
             ghcr.io/csoai-org/${{ matrix.flagship }}-mcp:${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.flagship }}
           cache-to: type=gha,scope=${{ matrix.flagship }},mode=max
+
+  sbom-and-scan:
+    # Generates an SBOM and vulnerability report for each flagship image.
+    # Required for AWS Marketplace seller registration and any compliance buyer
+    # (the same wedge the gateway is built for — eat your own dog food).
+    # Runs in parallel with `build` since it only needs the GHCR image.
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flagship: eu-ai-act
+          - flagship: dora
+          - flagship: nis2
+          - flagship: cra
+    steps:
+      - name: Generate SBOM (SPDX JSON)
+        uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          artifact-name: sbom-${{ matrix.flagship }}.spdx.json
+          image: ghcr.io/csoai-org/${{ matrix.flagship }}-mcp:${{ github.sha }}
+          # No auth needed: after the `build` job pushes, the image is in the
+          # org's GHCR (visibility may be private until manually flipped to public
+          # in GitHub Packages UI — see top-of-file comment).
+
+      - name: Vulnerability scan (Trivy)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ghcr.io/csoai-org/${{ matrix.flagship }}-mcp:${{ github.sha }}
+          format: sarif
+          output: trivy-${{ matrix.flagship }}.sarif
+          # Fail on HIGH/CRITICAL — those are marketplace-blocking.
+          severity: HIGH,CRITICAL
+          # Don't scan OS packages by default; the image is python:3.11-slim with
+          # only 2 pip deps, so a python-only scan keeps the report focused.
+          scanners: vuln
+          vuln-type: os,library
+          ignore-unfixed: true
+
+      - name: Upload scan artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-${{ matrix.flagship }}
+          path: |
+            sbom-${{ matrix.flagship }}.spdx.json
+            trivy-${{ matrix.flagship }}.sarif
+          retention-days: 30
