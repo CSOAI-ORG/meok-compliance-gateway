@@ -35,7 +35,7 @@ curl -XPOST localhost:8000/mcp -H 'content-type: application/json' \
 - Front the deployed `/mcp` with `meok-x402-wrap-mcp` (or `agent-x402-paywall-mcp`).
 - Plug your **Coinbase CDP wallet** (receiving address) into the wrap.
 - On first settled USDC payment, you appear in Coinbase Agentic.Market automatically — agent-purchasable.
-- Why first: $50M+ already processed, 165M tx, OpenRouter (~$1B/yr) migrated 2026-05-22, Coinbase × AWS Bedrock AgentCore native integration 2026-05-07.
+- Why first: $50M+ already processed, OpenRouter (~$1B/yr inference) transitioning to x402 (2026), Coinbase × AWS Bedrock AgentCore native integration 2026-05-07 (confirmed: CoinDesk / Coinbase blog).
 - **NEEDS NICK:** Coinbase CDP wallet + a deployed endpoint (any cloud below).
 
 ### 2. Deploy ONE flagship container to a public host
