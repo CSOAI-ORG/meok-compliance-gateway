@@ -18,7 +18,7 @@
 - `requirements-gateway.txt` — exact pins for reproducible builds (`mcp==1.27.2`, `uvicorn[standard]==0.48.0`).
 - `build_all.sh` — builds 4 flagship images (eu-ai-act, dora, nis2, cra).
 - `smithery.yaml` — Smithery container/HTTP config (Smithery dropped stdio Sept 2025).
-- `.github/workflows/test-gateway.yml` — real CI: lint + import smoke + e2e /mcp initialize (mock server).
+- `.github/workflows/test-gateway.yml` + `tests/e2e_smoke.py` — real CI: lint + import smoke, plus a true e2e that installs a flagship, boots the gateway, and drives it with the mcp client (initialize + tools/list + /healthz). Verified locally: 16 tools listed against `eu-ai-act-compliance-mcp`.
 
 ## Deploy (one command on any host WITH Docker — this box's Docker is down)
 ```bash

@@ -19,7 +19,7 @@ Dockerfile           # from this template
 smithery.yaml        # Smithery container/HTTP config (runtime: container)
 requirements.txt     # mcp==<gateway pin>, uvicorn[standard]==<gateway pin>
 server.py            # imports mcp from mcp.server.fastmcp; @mcp.tool() decorators
-.github/workflows/test.yml  # lint + import + e2e /mcp initialize
+.github/workflows/test.yml  # lint + import + real e2e (install PKG, boot, initialize + tools/list)
 SECURITY.md          # vulnerability disclosure + signed commits
 ```
 
@@ -83,10 +83,28 @@ jobs:
       - uses: actions/setup-python@v5
       - uses: actions/setup-node@v4
         with: {node-version: '20'}
-      - run: pip install -r requirements.txt
+      - run: pip install -r requirements.txt "<pypi-flagship-name>"
       - run: python -m py_compile server.py http_server.py
-      # e2e: install PKG, boot http_server, POST /mcp initialize, GET /healthz
+      # Real e2e — boot the actual gateway, drive it with the mcp client:
+      - run: |
+          PORT=8000 python http_server.py & echo $! > /tmp/gw.pid
+          for i in $(seq 1 30); do curl -fsS localhost:8000/healthz >/dev/null 2>&1 && break; sleep 1; done
+          python - <<'PY'
+          import anyio
+          from mcp import ClientSession
+          from mcp.client.streamable_http import streamablehttp_client
+          async def main():
+              async with streamablehttp_client("http://127.0.0.1:8000/mcp") as (r, w, _):
+                  async with ClientSession(r, w) as s:
+                      await s.initialize()
+                      assert (await s.list_tools()).tools, "no tools"
+                      print("e2e OK")
+          anyio.run(main)
+          PY
+          kill "$(cat /tmp/gw.pid)" 2>/dev/null || true
 ```
+> The gateway repo's `tests/e2e_smoke.py` is the reference implementation of this step
+> (verified: 16 tools listed against `eu-ai-act-compliance-mcp`).
 
 ## Canonical smithery.yaml
 ```yaml
