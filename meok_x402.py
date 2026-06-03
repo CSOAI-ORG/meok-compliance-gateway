@@ -34,6 +34,7 @@ deadline_check FREE as top-of-funnel):
 """
 from __future__ import annotations
 
+import contextvars
 import functools
 import json
 import logging
@@ -41,6 +42,15 @@ import os
 from typing import Any, Callable, Optional
 
 log = logging.getLogger("meok.x402")
+
+# True while the wrapped tool body runs under a VERIFIED x402 payment. Flagship
+# rate-limiters consult this so paying agents bypass the free-tier daily cap.
+_paid_call: contextvars.ContextVar[bool] = contextvars.ContextVar("meok_x402_paid", default=False)
+
+
+def is_paid_call() -> bool:
+    """True if the current tool invocation is backed by a verified x402 payment."""
+    return _paid_call.get()
 
 # x402/payment carries the signed payment; x402/payment-response carries the challenge.
 PAYMENT_META_KEY = "x402/payment"
@@ -73,6 +83,23 @@ def _price_to_atomic(price: str) -> str:
     return str(int(round(dollars * (10 ** _USDC_DECIMALS))))
 
 
+def _accepts(price: str) -> list:
+    """The PaymentRequirements list for this deployment's wallet/network/price."""
+    from x402.schemas import PaymentRequirements
+
+    network = _network()
+    return [
+        PaymentRequirements(
+            scheme="exact",
+            network=network,
+            asset=_asset(network),
+            amount=_price_to_atomic(price),
+            pay_to=os.environ["X402_PAY_TO"],
+            max_timeout_seconds=int(os.environ.get("X402_TIMEOUT", "300")),
+        )
+    ]
+
+
 def build_challenge(tool_name: str, price: str, error: str = "Payment required") -> dict:
     """Return the spec-correct x402 PaymentRequired challenge as wire JSON.
 
@@ -80,22 +107,13 @@ def build_challenge(tool_name: str, price: str, error: str = "Payment required")
     also what an x402-aware MCP client reads to construct its payment.
     """
     from x402 import ResourceInfo
-    from x402.schemas import PaymentRequired, PaymentRequirements
+    from x402.schemas import PaymentRequired
 
-    network = _network()
-    reqs = PaymentRequirements(
-        scheme="exact",
-        network=network,
-        asset=_asset(network),
-        amount=_price_to_atomic(price),
-        pay_to=os.environ["X402_PAY_TO"],
-        max_timeout_seconds=int(os.environ.get("X402_TIMEOUT", "300")),
-    )
     challenge = PaymentRequired(
         x402_version=1,
         error=error,
         resource=ResourceInfo(url=f"mcp://tool/{tool_name}", service_name="meok-compliance-gateway"),
-        accepts=[reqs],
+        accepts=_accepts(price),
     )
     return challenge.model_dump(by_alias=True)
 
@@ -143,6 +161,19 @@ def _find_ctx(args: tuple, kwargs: dict):
     return None
 
 
+def _unpaid(tool_name: str, price: str, error: str = "Payment required"):
+    """Emit the challenge in x402's canonical MCP shape: an isError result whose text
+    is the PaymentRequired JSON (mirrors the SDK's create_payment_wrapper). Raising
+    ToolError keeps FastMCP's typed-output validation out of the way for `-> str` tools.
+    """
+    envelope = {PAYMENT_RESPONSE_META_KEY: build_challenge(tool_name, price, error)}
+    try:
+        from mcp.server.fastmcp.exceptions import ToolError
+    except ImportError:  # non-FastMCP harness (e.g. unit tests without mcp)
+        return envelope
+    raise ToolError(json.dumps(envelope))
+
+
 def paywalled(price: Optional[str] = None, *, tool_name: Optional[str] = None) -> Callable:
     """Decorator for a FastMCP tool. No-op unless X402_ENABLED.
 
@@ -163,28 +194,26 @@ def paywalled(price: Optional[str] = None, *, tool_name: Optional[str] = None) -
             ctx = _find_ctx(args, kwargs)
             payment = _extract_meta(ctx).get(PAYMENT_META_KEY)
             if not payment:
-                return {PAYMENT_RESPONSE_META_KEY: build_challenge(name, price)}
+                return _unpaid(name, price)
             try:
                 server = _resource_server()
-                reqs = server.find_matching_requirements(
-                    [__import__("x402.schemas", fromlist=["PaymentRequirements"]).PaymentRequirements(
-                        scheme="exact", network=_network(), asset=_asset(_network()),
-                        amount=_price_to_atomic(price), pay_to=os.environ["X402_PAY_TO"],
-                        max_timeout_seconds=int(os.environ.get("X402_TIMEOUT", "300")),
-                    )],
-                    payment,
-                )
+                reqs = server.find_matching_requirements(_accepts(price), payment)
                 verify = server.verify_payment(payment, reqs)
                 if not getattr(verify, "is_valid", False):
-                    return {PAYMENT_RESPONSE_META_KEY: build_challenge(
-                        name, price, getattr(verify, "invalid_reason", "verification failed"))}
-                result = fn(*args, **kwargs)
+                    return _unpaid(name, price, getattr(verify, "invalid_reason", None) or "verification failed")
+                token = _paid_call.set(True)  # lets flagship rate-limiters waive the free-tier cap
+                try:
+                    result = fn(*args, **kwargs)
+                finally:
+                    _paid_call.reset(token)
                 try:
                     server.settle_payment(payment, reqs)  # best-effort settle
                 except Exception as exc:  # noqa: BLE001
                     log.warning("x402 settle failed for %s: %r", name, exc)
                 return result
             except Exception as exc:  # noqa: BLE001 — never let billing break the tool
+                if type(exc).__name__ == "ToolError":
+                    raise  # the challenge itself — must reach the client, not fail open
                 log.error("x402 path errored for %s, failing OPEN (serving the call): %r", name, exc)
                 return fn(*args, **kwargs)
 

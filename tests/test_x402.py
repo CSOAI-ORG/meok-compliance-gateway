@@ -51,6 +51,8 @@ def test_challenge_shape_and_price_math():
 
 
 def test_unpaid_call_is_gated():
+    import json
+
     m = _enable()
 
     class _P:
@@ -71,9 +73,19 @@ def test_unpaid_call_is_gated():
         ran["v"] = True
         return {"ran": True}
 
-    out = m.paywalled(price="$0.25")(audit_report)("acme", ctx=_Ctx())
-    assert m.PAYMENT_RESPONSE_META_KEY in out, "unpaid call must return a challenge"
+    # Canonical x402-MCP challenge = isError result with the PaymentRequired JSON as text
+    # (mirrors the SDK's create_payment_wrapper) — FastMCP surfaces ToolError exactly so.
+    from mcp.server.fastmcp.exceptions import ToolError
+
+    try:
+        m.paywalled(price="$0.25")(audit_report)("acme", ctx=_Ctx())
+        raise AssertionError("unpaid call must raise the challenge ToolError")
+    except ToolError as exc:
+        envelope = json.loads(str(exc))
+        assert m.PAYMENT_RESPONSE_META_KEY in envelope
+        assert envelope[m.PAYMENT_RESPONSE_META_KEY]["accepts"][0]["amount"] == "250000"
     assert ran["v"] is False, "tool body must NOT run when unpaid"
+    assert m.is_paid_call() is False
 
 
 if __name__ == "__main__":
