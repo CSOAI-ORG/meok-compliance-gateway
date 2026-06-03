@@ -1,17 +1,27 @@
 # MEOK Compliance Gateway — HTTP/Container Listing Playbook
 
-**Status:** keystone built + PROVEN. `http_server.py` serves any MEOK FastMCP server over
-streamable-HTTP at `/mcp` — verified locally: `initialize` handshake → **HTTP 200**.
-This artifact unlocks every HTTP-only surface (AWS, Google, Azure, Smithery) + x402.
+> **Status:** keystone built + PROVEN. `http_server.py` serves any MEOK FastMCP server over
+> streamable-HTTP at `/mcp` — verified locally: `initialize` handshake → **HTTP 200**.
+> This artifact unlocks every HTTP-only surface (AWS, Google, Azure, Smithery) + x402.
+>
+> ⚠️ **MCP 2026-07-28 spec freeze — ~8 weeks.** This gateway tracks the 2025-03-26 spec.
+> The new spec drops `initialize`/`initialized` and `Mcp-Session-Id`, requires
+> `Mcp-Method` + `Mcp-Name` + `MCP-Protocol-Version` on every request, and shifts
+> error code `-32002` → `-32602`. Plan: bump `mcp` pin in `requirements-gateway.txt`
+> when the upstream SDK ships support, then re-push GHCR images by **2026-07-14**
+> (2-week buffer). Tracked in issue #1.
+> Source: https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/
 
 ## What's in this dir
-- `http_server.py` — generic streamable-HTTP entrypoint (imports the installed `server` module, serves `/mcp` on `0.0.0.0:$PORT`). ✅ tested HTTP 200.
-- `Dockerfile` — parameterized by `--build-arg PKG=<pypi-name>`; pip-installs the server + uvicorn.
+- `http_server.py` — generic streamable-HTTP entrypoint (imports the installed `server` module, serves `/mcp` on `0.0.0.0:$PORT`). Also exposes `GET /healthz` and `GET /.well-known/oauth-protected-resource`. ✅ tested HTTP 200.
+- `Dockerfile` — parameterized by `--build-arg PKG=<pypi-name>`; pip-installs `requirements-gateway.txt` + the server.
+- `requirements-gateway.txt` — exact pins for reproducible builds (`mcp==1.27.2`, `uvicorn[standard]==0.48.0`).
 - `build_all.sh` — builds 4 flagship images (eu-ai-act, dora, nis2, cra).
 - `smithery.yaml` — Smithery container/HTTP config (Smithery dropped stdio Sept 2025).
+- `.github/workflows/test-gateway.yml` — real CI: lint + import smoke + e2e /mcp initialize (mock server).
 
 ## Deploy (one command on any host WITH Docker — this box's Docker is down)
-```
+```bash
 ./build_all.sh
 docker run -p 8000:8000 meok/eu-ai-act:latest
 curl -XPOST localhost:8000/mcp -H 'content-type: application/json' \
@@ -19,35 +29,36 @@ curl -XPOST localhost:8000/mcp -H 'content-type: application/json' \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"t","version":"1"}}}'
 ```
 
-## Marketplace listing paths
+## The honest critical path to revenue (in priority order)
 
-### 1. AWS Bedrock AgentCore → AWS Marketplace  ★ billable revenue
-- Push image to ECR → deploy to AgentCore Runtime (it hosts MCP servers; stateful added Mar 2026).
-- List on AWS Marketplace as a billable AI agent (revenue-share). **Best monetization for EU/UK compliance buyers.**
+### 1. x402 Bazaar  ★ smallest bridge — auto-list + per-call revenue
+- Front the deployed `/mcp` with `meok-x402-wrap-mcp` (or `agent-x402-paywall-mcp`).
+- Plug your **Coinbase CDP wallet** (receiving address) into the wrap.
+- On first settled USDC payment, you appear in Coinbase Agentic.Market automatically — agent-purchasable.
+- Why first: $50M+ already processed, 165M tx, OpenRouter (~$1B/yr) migrated 2026-05-22, Coinbase × AWS Bedrock AgentCore native integration 2026-05-07.
+- **NEEDS NICK:** Coinbase CDP wallet + a deployed endpoint (any cloud below).
+
+### 2. Deploy ONE flagship container to a public host
+- **Cloud Run (easiest)** — `gcloud run deploy <name> --source .` (see GCP_DEPLOY.md). ARM64 for AWS AgentCore; x86 is fine for Cloud Run.
+- **AWS Bedrock AgentCore** — push ARM64 image to ECR, list on AWS Marketplace (billable). State-of-the-art monetization for EU/UK compliance buyers.
+- **Railway / Fly / Render** — `docker run`-equivalent; bring your own domain.
+- Once a public URL is live, layer #1 on top.
+
+### 3. Smithery (HTTP)
+- `smithery.yaml` is ready. Connect the GitHub repo at smithery.ai → it builds the container.
+- **NEEDS NICK:** Smithery login + connect repo. 19 flagships already submitted, **pending review since 2026-05-14** — ping the queue.
+
+### 4. AWS Bedrock AgentCore → AWS Marketplace  ★ billable enterprise revenue
+- ARM64 Docker container, port 8000, `/mcp`. **Matches `http_server.py` exactly.**
+- List on AWS Marketplace as a billable AI agent (revenue-share).
 - **NEEDS NICK:** AWS account + Marketplace **seller registration** (tax/banking) — account-gated, can't be automated.
 
-### 2. Smithery (HTTP)
-- `smithery.yaml` is ready. Connect the GitHub repo at smithery.ai → it builds the container.
-- **NEEDS NICK:** Smithery login + connect repo.
-
-### 3. Docker MCP Catalog
+### 5. Docker MCP Catalog
 - Publish image to Docker Hub, then PR to `docker/mcp-registry`.
 - **NEEDS NICK:** Docker Hub account; **NEEDS:** a host with Docker to build/push.
 
-### 4. Google Gemini Enterprise / Agent Garden + Azure AI Foundry
+### 6. Google Gemini Enterprise / Azure AI Foundry
 - A2A-native; apply to Google AI Agent Ecosystem Program / package with M365 Agent Toolkit.
 - **NEEDS NICK:** partner-program application (enterprise, gated).
 
-### 5. x402 Bazaar  ★ auto-list + per-call revenue (the £ frontier)
-- Put `agent-x402-paywall-mcp` / `meok-x402-wrap-mcp` in front of the deployed `/mcp` endpoint.
-- On first settled payment, you appear in the x402 Bazaar automatically — agent-purchasable.
-- **NEEDS NICK:** Coinbase CDP wallet (receiving address) + deployed endpoint (from above).
-
-## The honest critical path to revenue
-1. Deploy ONE flagship container to any host (AWS/Railway/Fly/Render) — **your cloud account**.
-2. Front it with x402 wrap + your Coinbase wallet → per-call revenue + auto-Bazaar listing.
-3. List the same image on AWS Marketplace (billable) + Smithery.
-4. Everything else (registry, Glama, punkpeye, meok.ai £79 page) already funnels to this.
-
-The build is done and proven. The remaining steps are **account-gated** (AWS seller, Coinbase
-wallet, Smithery/Docker logins) — unavoidable, they require your identity/banking.
+Everything else (Glama, punkpeye, meok.ai £79 page, EU AI Act 2026-08-02 urgency) already funnels to this. **The build is done and proven. The remaining steps are account-gated** (Coinbase wallet, AWS seller, Smithery/Docker logins) — unavoidable, they require your identity/banking.

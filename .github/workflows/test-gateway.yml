@@ -1,0 +1,52 @@
+name: test-gateway
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install gateway runtime
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-gateway.txt
+          # Install a stub `server` module so http_server.py imports cleanly in CI.
+          # Production builds get the real `server` from the flagship PKG via Docker.
+
+      - name: Lint http_server.py
+        run: |
+          python -m py_compile http_server.py
+          # Compile-only check. The previous `test.yml` used `py_compile server.py`,
+          # which is N/A here — the real entrypoint is http_server.py.
+
+      - name: Import smoke
+        run: |
+          # Stub the imported `server` module so the import in http_server.py succeeds.
+          mkdir -p /tmp/stub && cat > /tmp/stub/server.py <<'PY'
+          class _MCP:
+              settings = type("S", (), {"host": "", "port": 0, "transport_security": None})()
+              def custom_route(self, *a, **k):
+                  def deco(fn): return fn
+                  return deco
+              def run(self, *a, **k): pass
+          mcp = _MCP()
+          PY
+          PYTHONPATH=/tmp/stub python -c "import importlib.util, sys; spec=importlib.util.spec_from_file_location('http_server','http_server.py'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print('import OK')"
+
+      # NOTE: a real e2e step belongs here — `pip install` a flagship PKG (e.g.
+      # eu-ai-act-compliance-mcp), boot http_server.py, then POST a real tools/call
+      # and GET /healthz against the actual server. The prior "mock server" step was
+      # removed: it stood up a hand-coded FastAPI app and asserted the mock returned
+      # what the mock was coded to return — green CI that tested nothing real.

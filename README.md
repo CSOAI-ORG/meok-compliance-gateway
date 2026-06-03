@@ -14,4 +14,9 @@ docker run -p 8000:8000 meok/eu-ai-act    # → POST /mcp
 ```
 
 Flagships: eu-ai-act · dora · nis2 · cra (+ any of the 290 MEOK MCP servers).
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+> ⚠️ **2026-07-28 MCP spec freeze in ~8 weeks** — this gateway tracks the 2025-03-26 spec. Migration plan: see [LISTING.md § MCP Spec Freeze](./LISTING.md#-mcp-2026-07-28-spec-freeze-8-weeks).
+
 MIT-licensed. MEOK AI Labs (CSOAI LTD, UK CH 16939677).

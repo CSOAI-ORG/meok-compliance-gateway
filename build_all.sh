@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 # Build streamable-HTTP container images for the compliance bundle.
 # Requires Docker running (Docker Desktop currently down on this box — run on a host with Docker).
 for pkg in eu-ai-act-compliance-mcp dora-compliance-mcp nis2-compliance-mcp cra-compliance-mcp; do

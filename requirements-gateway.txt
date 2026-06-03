@@ -1,0 +1,12 @@
+# Gateway runtime — exact pins for reproducible builds.
+#
+# The flagship `server.py` uses the mcp SDK's bundled FastMCP
+# (`from mcp.server.fastmcp import FastMCP`), NOT the standalone `fastmcp`
+# package — so only `mcp` + `uvicorn` matter here. http_server.py imports
+# `mcp.server.transport_security` and calls `mcp.custom_route` / `mcp.run`,
+# all verified present in mcp 1.27.2.
+#
+# 2026-07-28 spec migration is an `mcp` SDK upgrade (+ flagship code), tracked
+# in LISTING.md — bump the pin below deliberately when the SDK ships support.
+mcp==1.27.2
+uvicorn[standard]==0.48.0
