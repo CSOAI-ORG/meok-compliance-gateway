@@ -45,6 +45,13 @@ jobs:
           PY
           PYTHONPATH=/tmp/stub python -c "import importlib.util, sys; spec=importlib.util.spec_from_file_location('http_server','http_server.py'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print('import OK')"
 
+      - name: x402 paid-tool helper tests
+        run: |
+          # base x402 (no [evm]) is enough for the no-op + challenge paths; verify/settle
+          # needs a funded wallet and is exercised in staging, not CI.
+          pip install x402
+          python tests/test_x402.py
+
   e2e:
     # Real end-to-end: install a flagship PKG, boot the ACTUAL gateway, and drive
     # it with the mcp streamable-HTTP client (real initialize + tools/list). This

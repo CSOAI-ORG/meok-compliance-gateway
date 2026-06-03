@@ -133,7 +133,29 @@ for f in README.md LICENSE pyproject.toml Dockerfile smithery.yaml requirements.
 done
 ```
 
+## Per-call monetization (x402) — a second revenue rail
+Stripe subscriptions bill **humans**; x402 bills **autonomous agents** per call in USDC,
+and on first settled payment auto-lists the endpoint in the x402 Bazaar / AWS AgentCore.
+Both run at once. Use `meok_x402.paywalled` (in `meok-compliance-gateway`) on **high-value**
+tools only — keep `quick_scan` / `deadline_check` FREE as top-of-funnel.
+
+```python
+from meok_x402 import paywalled
+from mcp.server.fastmcp import Context
+
+@mcp.tool()
+@paywalled(price="$0.25")          # OFF unless X402_ENABLED — free self-host is unaffected
+def audit_report(system: str, ctx: Context) -> dict:   # declare ctx so FastMCP injects it
+    """COST WARNING: $0.25/call. Full 42-point EU AI Act audit. ..."""   # AWS billable-tool convention
+    ...
+```
+Enable per-deployment with env: `X402_ENABLED=1`, `X402_PAY_TO=<Coinbase CDP wallet>`,
+`X402_PRICE`, `X402_NETWORK` (Base mainnet `eip155:8453`). Add `requirements-x402.txt`
+(`x402[evm]`) to the image. Tools that take payment must put **`COST WARNING:`** in their
+description (AWS Marketplace / AgentCore requirement so agents know before calling).
+Rollout: wallet + apply `@paywalled` to the 4–5 highest-value tools per flagship.
+
 ## Reference implementations
-- `meok-compliance-gateway` — the gateway shim (this template's source of truth)
+- `meok-compliance-gateway` — the gateway shim + `meok_x402.py` (this template's source of truth)
 - `eu-ai-act-compliance-mcp` — the gold-standard flagship (server.py + tests + smithery + Dockerfile.glama)
 - `soc2-compliance-ai-mcp` — second gold-standard flagship (auth_middleware.py + MEOK Compliance PDCA workflow)
