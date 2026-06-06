@@ -38,6 +38,7 @@ import contextvars
 import functools
 import json
 import logging
+import math
 import os
 from typing import Any, Callable, Optional
 
@@ -83,6 +84,10 @@ def _price_to_atomic(price: str) -> str:
         dollars = float(str(price).strip().lstrip("$"))
     except ValueError:
         raise ValueError(f"X402 price must be a dollar amount like '$0.10', got: {price!r}") from None
+    if not math.isfinite(dollars):
+        # float() happily parses 'inf'/'nan'; without this guard they surface as
+        # OverflowError / a cryptic NaN message from int(round(...)) (found by fuzz).
+        raise ValueError(f"X402 price must be a finite dollar amount like '$0.10', got: {price!r}")
     return str(int(round(dollars * (10 ** _USDC_DECIMALS))))
 
 
