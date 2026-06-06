@@ -51,7 +51,7 @@ python -m pytest agentaudit/tests/ agentaudit/fuzz/ -v
 |------|------|-------------|
 | `get_safety_experts` | Free | List all 14 OpenScore experts. |
 | `get_compliance_matrix` | Free | List regulation checks with expert mapping. |
-| `score_agent` | Free | OpenScore an A2A Agent Card (14 experts + optional BFT). |
+| `score_agent` | **$0.10** | OpenScore an A2A Agent Card (14 experts + optional BFT). |
 | `create_audit_trail` | Free | Init a Signet-signed, hash-chained audit log. |
 | `append_audit_event` | Free | Log an interaction with optional BFT + blockchain anchor. |
 | `verify_audit_trail` | Free | Verify chain integrity + Signet signatures. |
@@ -120,11 +120,12 @@ docker run -p 8000:8000 agentaudit
 
 ## Per-call monetization (x402)
 
-Seven tools are priced for autonomous-agent callers:
+Eight tools are priced for autonomous-agent callers:
 
 | Tool | Price | Use it for |
 |------|-------|-----------|
 | `generate_signet_receipt` | $0.05 | Issue a tamper-evident Ed25519 receipt for any hash |
+| `score_agent` | $0.10 | OpenScore an A2A Agent Card against the 14-expert algorithm + optional BFT |
 | `scan_shadow_agents` | $0.10 | Discover rogue A2A agents on candidate URLs |
 | `threat_intel_lookup` | $0.15 | Score an IoC (deterministic placeholder; swap for OTX/GreyNoise) |
 | `audit_trail_export_anchored` | $0.20 | Export a trail with a `sha256:` CID-format anchor + receipt |
