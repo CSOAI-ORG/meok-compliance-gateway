@@ -503,3 +503,127 @@ def test_x402_spending_report_records_paid_call(x402_enabled, monkeypatch) -> No
     assert "spending_test_tool" in data["by_tool"]
     # Payer should be the truncated address, not the full one.
     assert any("0x12345678" in r["payer"] for r in data["recent"])
+
+
+# ── Paid compliance + audit tools (smoke) ─────────────────────
+
+
+def test_compliance_gap_analyser_finds_missing_fields() -> None:
+    """An empty card must surface every applicable check as a gap."""
+    out = compliance_gap_analyser(json.dumps({}))
+    data = json.loads(out)
+    assert data["missing_count"] >= 10       # the matrix has many required fields
+    assert data["compliance_pct"] == 0.0
+    assert "gaps" in data
+    sample = data["gaps"][0]
+    assert {"check_id", "regulation", "article", "missing_field", "risk_level"} <= sample.keys()
+
+
+def test_compliance_gap_analyser_filled_card() -> None:
+    """A fully-filled card must report 0 gaps and 100% compliance."""
+    full_card = {
+        "id": "did:web:example.com",
+        "metadata": {
+            "riskAssessment": "done",
+            "trainingDataProvenance": "done",
+            "humanOversightContact": "done",
+            "contentOriginTag": "done",
+            "forbiddenUseCases": [],
+            "ictRiskFramework": "done",
+            "resilienceTestReport": "done",
+            "supplyChainAudit": "done",
+            "lastIncidentReport": "done",
+            "vulnerabilityDisclosure": "done",
+            "updatePolicy": "done",
+        },
+        "documentationUrl": "https://example.com/docs",
+    }
+    out = compliance_gap_analyser(json.dumps(full_card))
+    data = json.loads(out)
+    assert data["missing_count"] == 0
+    assert data["compliance_pct"] == 100.0
+
+
+def test_compliance_gap_analyser_regulation_filter() -> None:
+    """`regulation=eu_ai_act` must restrict the matrix to that regulation's checks."""
+    out = compliance_gap_analyser(json.dumps({}), regulation="eu_ai_act")
+    data = json.loads(out)
+    assert all(g["regulation"] == "eu_ai_act" for g in data["gaps"])
+
+
+def test_compliance_gap_analyser_invalid_json() -> None:
+    out = compliance_gap_analyser("not json")
+    data = json.loads(out)
+    assert "error" in data
+
+
+def test_expert_quorum_consult() -> None:
+    out = expert_quorum_consult("How do we prove EU AI Act Art 9 compliance?", n_experts=3)
+    data = json.loads(out)
+    assert data["experts_consulted"] == 3
+    assert len(data["digest"]) == 3
+    assert all(d["expert_id"] in (1, 2, 3) for d in data["digest"])
+    assert "quorum_receipt" in data
+    assert data["quorum_receipt"]["scheme"] in ("ed25519", "hmac-sha256")
+
+
+def test_expert_quorum_consult_clamps_n() -> None:
+    """n_experts must clamp to [1, 14] regardless of the caller's value."""
+    out = expert_quorum_consult("test", n_experts=999)
+    data = json.loads(out)
+    assert data["experts_consulted"] == 14
+    out2 = expert_quorum_consult("test", n_experts=0)
+    data2 = json.loads(out2)
+    assert data2["experts_consulted"] == 1
+
+
+def test_audit_trail_export_anchored_no_session() -> None:
+    out = audit_trail_export_anchored("does-not-exist")
+    data = json.loads(out)
+    assert "error" in data
+
+
+def test_audit_trail_export_anchored_ok() -> None:
+    sid = "export-session-test"
+    create_audit_trail(sid)
+    # Use append_audit_event through the server path
+    from agentaudit.server import append_audit_event
+    append_audit_event(sid, "a2a", "src", "tgt", "act", json.dumps({"k": "v"}))
+    out = audit_trail_export_anchored(sid)
+    data = json.loads(out)
+    assert data["entries"] >= 1
+    assert data["anchor"].startswith("sha256:")
+    assert data["integrity_ok"] is True
+    assert "signet_receipt" in data
+    assert "trail" in data
+    assert isinstance(data["trail"], list) and len(data["trail"]) >= 1
+
+
+def test_threat_intel_lookup_deterministic() -> None:
+    """Same indicator → same score (deterministic placeholder)."""
+    a = json.loads(threat_intel_lookup("evil.example.com"))
+    b = json.loads(threat_intel_lookup("evil.example.com"))
+    assert a["score"] == b["score"]
+    assert a["severity"] == b["severity"]
+    assert 0 <= a["score"] <= 100
+    assert a["severity"] in ("low", "medium", "high", "critical")
+
+
+def test_threat_intel_lookup_empty_indicator() -> None:
+    out = threat_intel_lookup("")
+    data = json.loads(out)
+    assert "error" in data
+
+
+def test_threat_intel_lookup_bad_type() -> None:
+    out = threat_intel_lookup("evil.example.com", indicator_type="email")
+    data = json.loads(out)
+    assert "error" in data
+
+
+def test_threat_intel_lookup_includes_signet_receipt() -> None:
+    data = json.loads(threat_intel_lookup("1.2.3.4", indicator_type="ip"))
+    assert data["indicator_type"] == "ip"
+    assert "signet_receipt" in data
+    assert data["signet_receipt"]["entry_hash"].startswith("ti:ip:1.2.3.4")
+
