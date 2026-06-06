@@ -1,4 +1,4 @@
-"""OpenScore — Trust scoring algorithm for the OpenMoE-BFT Empire.
+"""OpenScore — Trust scoring algorithm for the OpenMoE-BFT Empire (Layer 3).
 
 Maps MCP attestations + A2A Agent Cards to a 0.0–1.0 trust score,
 broken down by each of the 14 safety experts and by regulation.

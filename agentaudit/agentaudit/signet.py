@@ -1,4 +1,4 @@
-"""Signet — Ed25519 cryptographic receipts for audit trails.
+"""Signet — Ed25519 cryptographic receipts for audit trails (OpenMoE-BFT Empire Layer 9).
 
 Aligned with OpenMoE-BFT Empire Layer 9 (Audit & Receipts).
 Provides hash-chained, bilaterally co-signed receipts that can be

@@ -1,5 +1,8 @@
 """OpenScore Safety Experts — the 14-expert governance layer from the OpenMoE-BFT Empire spec.
 
+See: OPENMOE_BFT_ALIGNMENT.md for cross-agent context.
+Empire Spec: ../research/OPENMOE_BFT_EMPIRE_SPEC_v1.0.md (Layer 3)
+
 Each expert is a forked or integrated open-source project that enforces one
 compliance, security, or governance dimension.  AgentAudit maps A2A Agent Card
 fields to the experts that validate them.

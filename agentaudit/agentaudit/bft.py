@@ -1,5 +1,7 @@
 """BFT Consensus metadata for OpenMoE-BFT Empire Layer 2 & Layer 9.
 
+See: OPENMOE_BFT_ALIGNMENT.md for cross-agent context.
+
 Tracks 2f+1 Byzantine-Fault-Tolerant consensus rounds on audit-trail entries.
 Production deployments replace the in-memory dict with a distributed consensus
 log (Mysticeti, Lachesis, or ByzFL aggregator).

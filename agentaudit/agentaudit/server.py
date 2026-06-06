@@ -1,5 +1,8 @@
 """AgentAudit FastMCP server — OpenMoE-BFT Empire compliance gateway.
 
+See: OPENMOE_BFT_ALIGNMENT.md for cross-agent context.
+Empire Spec: ../research/OPENMOE_BFT_EMPIRE_SPEC_v1.0.md
+
 Exposes 14 OpenScore safety experts, BFT consensus tools, Signet receipts,
 tamper-evident audit trails, and x402-gated shadow scanning over MCP.
 """
