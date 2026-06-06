@@ -49,8 +49,9 @@ jobs:
         run: |
           # base x402 (no [evm]) is enough for the no-op + challenge paths; verify/settle
           # needs a funded wallet and is exercised in staging, not CI.
-          pip install x402 pytest
-          pytest tests/test_x402.py -v
+          # hypothesis powers tests/test_x402_properties.py (derandomized fuzz).
+          pip install x402 pytest hypothesis
+          pytest tests/test_x402.py tests/test_x402_properties.py -v
 
   e2e:
     # Real end-to-end: install a flagship PKG, boot the ACTUAL gateway, and drive
