@@ -12,6 +12,7 @@ from mcp.server.fastmcp import FastMCP
 from .compliance_matrix import MATRIX, by_regulation, by_risk, Regulation, RiskLevel
 from .audit_trail import AuditTrail, AuditEntry
 from .bridge import score_agent_card, TrustScore
+from .x402 import paywalled
 
 # ── FastMCP singleton ──────────────────────────────────────────
 mcp = FastMCP("agentaudit")
@@ -162,7 +163,8 @@ def dump_audit_trail(session_id: str) -> str:
 
 
 @mcp.tool(description="COST WARNING: $0.10 per call — Run a shadow scan for unregistered agents.")
-def scan_shadow_agents(candidate_urls: str) -> str:
+@paywalled(price="$0.10", tool_name="scan_shadow_agents")
+def scan_shadow_agents(candidate_urls: str, ctx=None) -> str:
     """Probe candidate URLs for A2A Agent Cards.
 
     Parameters
@@ -177,7 +179,6 @@ def scan_shadow_agents(candidate_urls: str) -> str:
     # Synchronous scan for MCP tool compatibility
     from .shadow_scanner import ShadowScanner, DiscoveredAgent
     scanner = ShadowScanner()
-    # aiohttp scan is async — wrap in asyncio.run
     import asyncio
 
     async def _run() -> list[DiscoveredAgent]:
