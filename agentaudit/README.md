@@ -20,6 +20,10 @@ python http_server.py        # listens on 0.0.0.0:8000
 # 4. Opt in to per-call monetization (priced tools)
 pip install 'agentaudit[x402]'
 X402_ENABLED=1 X402_PAY_TO=0xYourBaseWallet python -m agentaudit.server
+
+# 5. Dev / fuzz install (hypothesis property tests)
+pip install 'agentaudit[dev]'    # includes hypothesis
+python -m pytest agentaudit/tests/ agentaudit/fuzz/ -v
 ```
 
 ## OpenScore Safety Experts (14)
@@ -57,7 +61,11 @@ X402_ENABLED=1 X402_PAY_TO=0xYourBaseWallet python -m agentaudit.server
 | `get_bft_status` | Free | Query BFT consensus state. |
 | `register_expert` | Free | Register an MCP server as a safety expert candidate. |
 | `scan_shadow_agents` | **$0.10** | Probe URLs for rogue A2A agents. |
+| `compliance_gap_analyser` | **$0.25** | Run the EU/DORA/NIS2/CRA matrix against a partial card; return a remediation list. |
 | `finalize_bft_round` | **$0.50** | Tally a BFT round + mint a Signet receipt for the majority hash (consensus-as-a-service). |
+| `expert_quorum_consult` | **$1.00** | Fan out across N experts, return a Signet-receipted digest. |
+| `audit_trail_export_anchored` | **$0.20** | Export a trail with a `sha256:` CID-format anchor + Signet receipt. |
+| `threat_intel_lookup` | **$0.15** | Deterministic threat-intel score for an IoC (placeholder feed; swap for OTX/GreyNoise). |
 | `x402_spending_report` | Free | Rolling log of verified paid calls + per-tool counts (cross-check vs your facilitator dashboard). |
 
 *Paid tools require `X402_ENABLED=1` and a valid `_meta["x402/payment"]` token. They are **off by default** — free self-host and existing builds are unaffected.*
@@ -112,13 +120,17 @@ docker run -p 8000:8000 agentaudit
 
 ## Per-call monetization (x402)
 
-Three tools are priced for autonomous-agent callers:
+Seven tools are priced for autonomous-agent callers:
 
 | Tool | Price | Use it for |
 |------|-------|-----------|
 | `generate_signet_receipt` | $0.05 | Issue a tamper-evident Ed25519 receipt for any hash |
 | `scan_shadow_agents` | $0.10 | Discover rogue A2A agents on candidate URLs |
-| `finalize_bft_round` | $0.50 | Tally a BFT round and mint a Signet attestation (consensus-as-a-service) |
+| `threat_intel_lookup` | $0.15 | Score an IoC (deterministic placeholder; swap for OTX/GreyNoise) |
+| `audit_trail_export_anchored` | $0.20 | Export a trail with a `sha256:` CID-format anchor + receipt |
+| `compliance_gap_analyser` | $0.25 | Run the EU/DORA/NIS2/CRA matrix; get a remediation list |
+| `finalize_bft_round` | $0.50 | Tally a BFT round and mint a Signet attestation |
+| `expert_quorum_consult` | $1.00 | Fan out across N experts; Signet-receipted consensus digest |
 
 All other tools are free and stay free. Payment travels in MCP request `_meta["x402/payment"]`
 (spec-correct x402-over-MCP, **not** HTTP 402 — MCP clients can't read HTTP status).
