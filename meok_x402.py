@@ -79,7 +79,10 @@ def _asset(network: str) -> str:
 
 def _price_to_atomic(price: str) -> str:
     """'$0.10' -> '100000' (USDC has 6 decimals). Accepts bare numbers too."""
-    dollars = float(str(price).strip().lstrip("$"))
+    try:
+        dollars = float(str(price).strip().lstrip("$"))
+    except ValueError:
+        raise ValueError(f"X402 price must be a dollar amount like '$0.10', got: {price!r}") from None
     return str(int(round(dollars * (10 ** _USDC_DECIMALS))))
 
 
