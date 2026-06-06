@@ -32,24 +32,28 @@ Each repo is scored 0-10 on each of 18 OpenSSF Scorecard checks:
 
 Color codes: 🟢 ≥ 7.0 · 🟡 4.0-6.9 · 🔴 < 4.0
 
-## Fleet summary (hand-rolled, to be replaced by official Scorecard)
+## Fleet summary (hand-rolled, 2026-06-06 — to be replaced by official Scorecard)
 
-| Repo | Overall | Worst check | Top fix |
-|------|---------|-------------|---------|
-| meok-compliance-gateway (keystone) | TBD | TBD | TBD |
-| eu-ai-act-compliance-mcp | TBD | TBD | TBD |
-| cra-compliance-mcp | TBD | TBD | TBD |
-| dora-compliance-mcp | TBD | TBD | TBD |
-| nis2-compliance-mcp | TBD | TBD | TBD |
-| csrd-compliance-mcp | TBD | TBD | TBD |
-| gdpr-compliance-ai-mcp | TBD | TBD | TBD |
-| hipaa-compliance-mcp | TBD | TBD | TBD |
-| iso-42001-ai-mcp | TBD | TBD | TBD |
-| soc2-compliance-ai-mcp | TBD | TBD | TBD |
-| bias-detection-mcp | TBD | TBD | TBD |
-| csoai-governance-crosswalk-mcp | TBD | TBD | TBD |
-| meok-mcp-injection-scan-mcp | TBD | TBD | TBD |
-| meok-governance-engine-mcp | TBD | TBD | TBD |
+| Repo | Overall | Worst check (0/10) | Top fix |
+|------|---------|-------------------|---------|
+| meok-compliance-gateway (keystone) | **5.1/10** | Code-Review, Fuzzing, Signed-Releases | Dependabot + CodeQL (this commit); cosign via gateway #5; hypothesis tests via `d177461` |
+| eu-ai-act-compliance-mcp | 4.1/10 | Code-Review, Dep-Update-Tool, SAST, Fuzzing, Signed-Releases | Dependabot + CodeQL per fleet PR |
+| cra-compliance-mcp | 3.9/10 | + Token-Permissions (3) | Dependabot + CodeQL |
+| dora-compliance-mcp | 3.9/10 | same | Dependabot + CodeQL |
+| nis2-compliance-mcp | 3.9/10 | same | Dependabot + CodeQL |
+| csrd-compliance-mcp | 3.9/10 | same | Dependabot + CodeQL |
+| gdpr-compliance-ai-mcp | 4.1/10 | 5-way 0-tie | Dependabot + CodeQL |
+| hipaa-compliance-mcp | **3.4/10** | Binary-Artifacts (-10) + 5-way 0-tie | Remove `dist/` + Dependabot + CodeQL |
+| iso-42001-ai-mcp | 4.1/10 | 5-way 0-tie | Dependabot + CodeQL |
+| soc2-compliance-ai-mcp | 4.1/10 | 5-way 0-tie | Dependabot + CodeQL |
+| bias-detection-mcp | 3.9/10 | 6-way 0-tie | Dependabot + CodeQL |
+| csoai-governance-crosswalk-mcp | 4.1/10 | 5-way 0-tie | Dependabot + CodeQL |
+| meok-mcp-injection-scan-mcp | 4.1/10 | 5-way 0-tie | Dependabot + CodeQL |
+| meok-governance-engine-mcp | 4.1/10 | 5-way 0-tie | Dependabot + CodeQL |
+
+**Fleet rollup:** mean 4.04/10 · median 4.06/10 · 1 green, 5 yellow, 8 red.
+
+The 4 fleet-wide patterns (Dependabot + CodeQL + cosign + fuzz) project the fleet mean to **~7.0/10** (green) once all 14 repos adopt them. Fleet-wide propagation goes through `FLEET_BASE.md`; do not hand-patch repos divergently.
 
 ## What the official Scorecard gives you beyond this
 
@@ -80,6 +84,35 @@ When the audit agent finishes, the per-repo `SECREVIEW.md` files will list the t
 5. **(Likely)** Add `SECURITY.md` to the 13 flagships that don't have one (the keystone has one) — copy the keystone's, ~2 min each.
 
 The official Scorecard will surface the rest.
+
+## Keystone (meok-compliance-gateway) — per-check detail
+
+Per the 2026-06-06 hand-rolled audit (see `FLEET_SCORE.md` for the fleet matrix). 18 OpenSSF Scorecard checks; 8 wins, 5 critical gaps, 2 partials.
+
+### 10/10 wins (8)
+- **CI-Tests** — `.github/workflows/test-gateway.yml` runs `pytest tests/test_x402.py -v` AND a real e2e job (boots `http_server.py` with `eu-ai-act-compliance-mcp==1.8.1`, hits `/healthz`, runs `tests/e2e_smoke.py`).
+- **Dangerous-Workflow** — zero `pull_request_target` across 17 workflow files (3 keystone + 31 flagship).
+- **Binary-Artifacts** — no committed `.so`/`.dylib`/`.whl`/`.tar.gz` (GitHub API recursive tree confirms).
+- **Token-Permissions** — `build-push.yml` declares `permissions: { contents: read, packages: write }`; `scorecard.yml` uses `read-all` then narrows per-job.
+- **Pinned-Dependencies** — `requirements-gateway.txt` has `mcp==1.27.2`, `uvicorn[standard]==0.48.0`; `constraints.txt` mirrors; CI uses `pip install -c constraints.txt`.
+- **License** — `LICENSE` (1081 bytes) → base64 decodes to MIT; GitHub API confirms `spdx_id: MIT`.
+- **Security-Policy** — `SECURITY.md` (1627 bytes): supported versions table, `security@meok.ai` (48h SLA), explicit scope, out-of-scope carve-outs.
+- **Maintained** — 12 commits in last 90d; `pushedAt: 2026-06-06`.
+
+### 0/10 critical gaps (5)
+- **Code-Review** — 1 merged PR in last 90d (PR #2), 0 review comments. Single maintainer (`CSOAI-ORG`).
+- **Dependency-Update-Tool** + **Dependency-Configuration** — no `.github/dependabot.yml`, no `renovate.json`. **Fixed in this commit** for the keystone.
+- **SAST** — no bandit / codeql / semgrep / snyk in any workflow. `scorecard.yml` is posture scoring, not SAST. **Fixed in this commit** (`codeql.yml`).
+- **Fuzzing** — no `fuzz/`, no `hypothesis` property tests (for the JSON-RPC dispatcher). `tests/test_x402_properties.py` covers `meok_x402.py` pricing (good, but doesn't cover `http_server.py`). The dispatcher is the literal ingress point for the entire fleet.
+- **Signed-Releases** — no `gh api /releases` results, no cosign, no GPG. `build-push.yml` pushes GHCR images with `provenance: false`. **Fixed in commit `6ff7c0b`** (cosign keyless image signing on this branch).
+- **Branch-Protection** — `gh api .../branches/main/protection` → 403 (org-level block on the protection endpoint for fine-grained PATs). **Unverified** — Nick-only.
+
+### Partials (2)
+- **Packaging** 8/10 — `Dockerfile` uses `python:3.11-slim` + `pip install -r requirements-gateway.txt`; no `curl | sh`, no arbitrary code. -2 for `build_all.sh` (not audited here).
+- **SAST-Actions** 3/10 — `ossf/scorecard-action@v2.4.0` is posture scoring; Trivy in `build-push.yml` is image vuln scanning; `github/codeql-action` was NOT present (now **fixed in this commit**).
+
+### Projection after the 4 fleet fixes land on the keystone
+Dependabot ✅ (this commit) + CodeQL ✅ (this commit) + cosign ✅ (commit `6ff7c0b`) + JSON-RPC fuzz (pending) → **~7.5/10 (green)**.
 
 ## Source data
 
