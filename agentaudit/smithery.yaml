@@ -1,0 +1,35 @@
+name: agentaudit
+humanReadableName: "AgentAudit — A2A Compliance & Audit Proxy"
+description: |
+  Regulatory compliance, tamper-evident audit trails, and trust scoring
+  for AI agent protocols (MCP, A2A, ANP).  Maps EU AI Act / DORA / NIS2 / CRA
+  requirements to A2A Agent Card fields and exposes tools for scoring,
+  shadow-scanning, and compliance-gated payments.
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema for MCP client configuration
+    type: object
+    properties:
+      x402_enabled:
+        type: boolean
+        default: false
+        description: "Enable x402 paywall on paid tools"
+      x402_pay_to:
+        type: string
+        description: "EVM address for settlement"
+      x402_price:
+        type: string
+        default: "$0.10"
+        description: "Default price per paid tool call"
+    required: []
+  commandFunction: |
+    (config) => ({
+      command: "python",
+      args: ["-m", "agentaudit.server"],
+      env: {
+        X402_ENABLED: config.x402_enabled ? "1" : "",
+        X402_PAY_TO: config.x402_pay_to || "",
+        X402_PRICE: config.x402_price || "$0.10",
+      }
+    })
