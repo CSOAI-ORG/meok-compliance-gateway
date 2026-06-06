@@ -45,6 +45,14 @@ jobs:
           PY
           PYTHONPATH=/tmp/stub python -c "import importlib.util, sys; spec=importlib.util.spec_from_file_location('http_server','http_server.py'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print('import OK')"
 
+      - name: x402 paid-tool helper tests
+        run: |
+          # base x402 (no [evm]) is enough for the no-op + challenge paths; verify/settle
+          # needs a funded wallet and is exercised in staging, not CI.
+          # hypothesis powers tests/test_x402_properties.py (derandomized fuzz).
+          pip install x402 pytest hypothesis
+          pytest tests/test_x402.py tests/test_x402_properties.py -v
+
   e2e:
     # Real end-to-end: install a flagship PKG, boot the ACTUAL gateway, and drive
     # it with the mcp streamable-HTTP client (real initialize + tools/list). This
@@ -61,9 +69,13 @@ jobs:
           python-version: "3.11"
 
       - name: Install gateway runtime + a real flagship
+        # Pin the flagship to the gold-standard version (1.8.1 as of 2026-06-03).
+        # Bump deliberately when the upstream release is tested against the gateway.
+        # Without the pin, a new flagship release can break the gateway's import
+        # chain (mcp SDK / FastMCP API surface) without warning.
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-gateway.txt eu-ai-act-compliance-mcp
+          pip install -c constraints.txt -r requirements-gateway.txt eu-ai-act-compliance-mcp==1.8.1
 
       - name: Boot gateway + run real e2e (initialize + tools/list + /healthz)
         run: |
