@@ -74,8 +74,9 @@ def get_safety_experts(domain: str | None = None, regulation: str | None = None)
     return json.dumps([_expert_dict(e) for e in experts], indent=2)
 
 
-@mcp.tool(description="Score an A2A Agent Card using the OpenScore algorithm (14 experts + BFT).")
-def score_agent(agent_id: str, card_json: str, bft_round_json: str | None = None) -> str:
+@mcp.tool(description="COST WARNING: $0.10 per call — Score an A2A Agent Card using the OpenScore algorithm (14 experts + BFT).")
+@paywalled(price="$0.10", tool_name="score_agent")
+def score_agent(agent_id: str, card_json: str, bft_round_json: str | None = None, ctx=None) -> str:
     """Return an OpenScore JSON for the given Agent Card.
 
     Parameters

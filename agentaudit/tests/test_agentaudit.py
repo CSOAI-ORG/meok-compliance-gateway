@@ -507,6 +507,36 @@ def test_x402_spending_report_records_paid_call(x402_enabled, monkeypatch) -> No
     assert any("0x12345678" in r["payer"] for r in data["recent"])
 
 
+def test_x402_spending_report_records_score_agent(x402_enabled, monkeypatch) -> None:
+    """The real score_agent tool, when re-wrapped with @paywalled (the same way FastMCP
+    registers it), must populate the spending report on a verified call.
+
+    Mirrors the existing pattern in tests/test_x402.py — FastMCP's @mcp.tool wrapper
+    doesn't expose the inner paywalled function, so the test re-wraps explicitly to
+    exercise the @paywalled → server.score_agent → spending-log path end-to-end.
+    """
+    from agentaudit import x402 as xm
+    from tests.test_x402 import _FakeResourceServer, _FakeVerify, _ctx_with_meta  # type: ignore[import-not-found]
+
+    fake = _FakeResourceServer(verify=_FakeVerify(is_valid=True))
+    monkeypatch.setattr(xm, "_resource_server", lambda: fake)
+
+    # Re-wrap the imported score_agent — same shape as server.py's @mcp.tool(@paywalled(score_agent))
+    paywalled_score = xm.paywalled(price="$0.10", tool_name="score_agent")(score_agent)
+    card = {"documentationUrl": "https://example.com/docs"}
+    ctx = _ctx_with_meta(meta={xm.PAYMENT_META_KEY: {
+        "payload": {"authorization": {"from": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}
+    }})
+    out = paywalled_score("did:web:example.com", json.dumps(card), None, ctx=ctx)
+    data = json.loads(out)
+    assert "overall" in data  # the tool body ran — verify+settle succeeded
+
+    report = json.loads(x402_spending_report())
+    assert "score_agent" in report["by_tool"]
+    assert any("0xaaaa" in r["payer"] for r in report["recent"])
+    assert any(r["price"] == "$0.10" for r in report["recent"] if r["tool"] == "score_agent")
+
+
 # ── Paid compliance + audit tools (smoke) ─────────────────────
 
 
