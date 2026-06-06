@@ -77,6 +77,15 @@ jobs:
             | python -c "import json,sys; assert json.load(sys.stdin)['status']=='ok'; print('healthz OK')"
           python tests/e2e_smoke.py
 
+      - name: Assert MCP 2026-07-28 stateless contract
+        # Guards the stateless migration: no Mcp-Session-Id header, JSON responses,
+        # independent requests — the properties a round-robin LB depends on.
+        run: GATEWAY_URL=http://127.0.0.1:8000/mcp python tests/stateless_check.py
+
+      - name: Concurrency load test
+        # Proves the stateless gateway holds up under parallel agent traffic.
+        run: GATEWAY_URL=http://127.0.0.1:8000 LOAD_N=200 LOAD_CONCURRENCY=50 python tests/load_test.py
+
       - name: Stop gateway
         if: always()
         run: kill "$(cat /tmp/gateway.pid)" 2>/dev/null || true
