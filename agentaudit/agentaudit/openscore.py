@@ -8,12 +8,11 @@ receive a bonus; broken consensus applies a penalty.
 
 from __future__ import annotations
 
-import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
-from .compliance_matrix import Check, Regulation, RiskLevel, by_regulation
-from .safety_experts import SafetyExpert, EXPERTS, by_id
+from .compliance_matrix import Regulation, by_regulation
+from .safety_experts import EXPERTS
 from .audit_trail import AuditTrail
 from .bft import BFTConsensus
 

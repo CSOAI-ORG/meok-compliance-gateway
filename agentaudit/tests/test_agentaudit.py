@@ -3,14 +3,18 @@
 from __future__ import annotations
 
 import json
-import pytest
 
 from agentaudit.compliance_matrix import MATRIX, by_regulation, by_risk, by_expert, Regulation, RiskLevel
 from agentaudit.safety_experts import EXPERTS, by_id, by_domain, ExpertDomain
 from agentaudit.audit_trail import AuditTrail, AuditEntry
 from agentaudit.signet import SignetKey, sign_entry, verify_receipt
 from agentaudit.bft import BFTConsensus
-from agentaudit.openscore import openscore, OpenScoreResult, ExpertScore
+from agentaudit.openscore import openscore
+from agentaudit.server import (
+    get_compliance_matrix, score_agent, create_audit_trail,
+    get_safety_experts, generate_signet_receipt, cast_bft_vote,
+    get_bft_status, register_expert, finalize_bft_round, x402_spending_report,
+)
 
 
 # ── Compliance Matrix ──────────────────────────────────────────
@@ -338,12 +342,6 @@ def test_openscore_bft_penalty() -> None:
 
 # ── Server Tools (smoke) ───────────────────────────────────────
 
-from agentaudit.server import (
-    get_compliance_matrix, score_agent, create_audit_trail,
-    get_safety_experts, generate_signet_receipt, cast_bft_vote,
-    get_bft_status, register_expert, finalize_bft_round, x402_spending_report,
-)
-
 
 def test_get_safety_experts() -> None:
     out = get_safety_experts()
@@ -409,7 +407,7 @@ def test_cast_bft_vote() -> None:
     assert not data["consensus_reached"]
 
     out2 = cast_bft_vote("session-x", "node2", "hashA")
-    data2 = json.loads(out2)
+    _ = json.loads(out2)
     out3 = cast_bft_vote("session-x", "node3", "hashA")
     data3 = json.loads(out3)
     assert data3["consensus_reached"]

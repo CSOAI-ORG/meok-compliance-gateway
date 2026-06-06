@@ -20,7 +20,6 @@ from typing import Any
 
 def _has_nacl() -> bool:
     try:
-        import nacl.signing  # type: ignore[import-untyped]
         return True
     except Exception:
         return False

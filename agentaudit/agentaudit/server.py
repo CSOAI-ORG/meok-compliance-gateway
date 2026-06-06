@@ -17,11 +17,11 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-from .compliance_matrix import MATRIX, by_regulation, by_risk, Regulation, RiskLevel
+from .compliance_matrix import MATRIX, by_regulation, Regulation
 from .safety_experts import EXPERTS, SafetyExpert, by_id, by_domain, by_regulation as experts_by_reg
 from .audit_trail import AuditTrail, AuditEntry
-from .openscore import openscore, OpenScoreResult
-from .signet import SignetKey, SignetReceipt, sign_entry, verify_receipt
+from .openscore import openscore
+from .signet import SignetKey, sign_entry
 from .bft import BFTConsensus
 from .x402 import paywalled, spending_snapshot
 

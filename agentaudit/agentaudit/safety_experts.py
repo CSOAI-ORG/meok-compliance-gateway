@@ -13,7 +13,6 @@ from __future__ import annotations
 import enum
 import json
 from dataclasses import dataclass, asdict
-from typing import Any
 
 from .compliance_matrix import Regulation
 

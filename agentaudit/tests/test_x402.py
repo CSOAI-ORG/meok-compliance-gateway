@@ -276,7 +276,6 @@ def test_decorator_disabled_idempotent(x402_disabled) -> None:
 
 def test_ctx_can_be_positional(x402_enabled, monkeypatch) -> None:
     """@paywalled should find the FastMCP ctx whether passed by kwarg or position."""
-    from mcp.server.fastmcp.exceptions import ToolError
 
     m = x402_enabled
     fake = _FakeResourceServer(verify=_FakeVerify(is_valid=True))
