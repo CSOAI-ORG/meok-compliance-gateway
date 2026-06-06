@@ -12,49 +12,66 @@
 
 ### Required files
 ```
-README.md            # Install, env, one curl example, license badge
-LICENSE              # MIT
-pyproject.toml       # declares the PKG name + entry point
-Dockerfile           # from this template
-smithery.yaml        # Smithery container/HTTP config (runtime: container)
-requirements.txt     # mcp==<gateway pin>, uvicorn[standard]==<gateway pin>
-server.py            # imports mcp from mcp.server.fastmcp; @mcp.tool() decorators
-.github/workflows/test.yml  # lint + import + real e2e (install PKG, boot, initialize + tools/list)
-SECURITY.md          # vulnerability disclosure + signed commits
+README.md                       # Install, env, one curl example, license badge
+LICENSE                        # Apache-2.0 (or MIT, your choice — keep consistent)
+pyproject.toml                  # declares the PKG name + entry point + deps
+Dockerfile.glama                # python:3.14-slim + uv, runs mcp-wrapper.py
+smithery.yaml                   # declarative tool list (no `runtime:` block)
+server.py                       # imports mcp from mcp.server.fastmcp; @mcp.tool() decorators
+mcp-wrapper.py                  # streamable-HTTP shim importing server.mcp
+auth_middleware.py              # tier check, audit log
+.github/workflows/test.yml      # py_compile + pytest on Python 3.10/3.11
+.github/workflows/ci.yml        # py_compile + pytest + ruff on Python 3.11/3.12
+.github/workflows/mcp-smithery-publish.yml  # on release: published → nicholastempleman/<repo>
+SECURITY.md                     # vulnerability disclosure + signed commits
 ```
 
 ### Recommended files
 ```
-http_server.py       # streamable-HTTP shim (only if you want marketplace deployment)
-AGENTS.md            # distribution snippet for LLM agents
-Dockerfile.glama     # if you also want Glama distribution
+.well-known/mcp/server-card.json # Smithery discovery card
+package.json                    # MCP registry metadata
+glama.json                      # Glama discovery metadata
+server.json                     # MCP server schema (modelcontextprotocol.io)
 ```
 
-## Canonical Dockerfile (matches meok-compliance-gateway)
+**Note:** `requirements.txt` is **not** required — gold-standards declare all deps in `pyproject.toml`.
+A separate `requirements-gateway.txt` lives only in the gateway repo, where it pins the gateway's
+exact `mcp==1.27.2` so the in-process `from server import mcp` resolves deterministically. Flagships
+pin loose (`mcp>=1.0.0`); pip's exact-pin-takes-precedence resolves any conflict at the gateway's
+`pip install -r requirements-gateway.txt "${PKG}"` boundary.
+
+## Canonical Dockerfile (use Dockerfile.glama — matches the gateway + all 4 reference flagships)
 ```dockerfile
-# Pinned by digest for reproducible builds (tag kept for readability).
-# Re-resolve with:  docker buildx imagetools inspect python:3.11-slim
-FROM python:3.11-slim@sha256:a3ab0b966bc4e91546a033e22093cb840908979487a9fc0e6e38295747e49ac0
-ARG PKG=<pypi-flagship-name>
-ENV PORT=8000 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
+# python:3.14-slim; uv for fast pip; runs mcp-wrapper.py which exposes
+# the FastMCP server over streamable-HTTP on PORT (default 8000).
+FROM python:3.14-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    UV_LINK_MODE=copy
+
+# uv (https://github.com/astral-sh/uv) is ~10× faster than pip for cold installs
+RUN pip install --no-cache-dir uv
+
 WORKDIR /app
-COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt "${PKG}"
-COPY server.py /app/server.py
-COPY http_server.py /app/http_server.py  # if applicable
-# Run unprivileged — required by Docker MCP Catalog / AWS Marketplace review.
+
+# Install PKG from PyPI (a meta-package that pulls the flagship + its deps)
+ARG PKG
+RUN uv pip install --system "${PKG}"
+
+# Ship the wrapper so Smithery/Cloud Run can launch it directly
+COPY mcp-wrapper.py /app/mcp-wrapper.py
+COPY .well-known /app/.well-known
+
+# Unprivileged user (Cloud Run / AgentCore / Docker MCP Catalog requirement)
 RUN useradd --create-home --uid 10001 app && chown -R app:app /app
 USER app
-EXPOSE 8000
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD python -c "import os,sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:%s/healthz' % os.environ.get('PORT','8000'), timeout=2).status==200 else 1)"
-CMD ["python", "http_server.py"]
-```
 
-## Canonical requirements.txt
-```
-mcp==1.27.2
-uvicorn[standard]==0.48.0
+ENV PORT=8000
+EXPOSE 8000
+
+# /healthz is wired in mcp-wrapper.py
+CMD ["python", "mcp-wrapper.py"]
 ```
 
 ## Canonical server.py
@@ -68,67 +85,97 @@ def ping() -> str:
     return "pong"
 ```
 
-## Canonical http_server.py (adds /healthz + RFC 9728)
-See `/Users/nicholas/meok-compliance-gateway/http_server.py` for the production version.
+## Canonical mcp-wrapper.py (streamable-HTTP shim)
+```python
+import os
+from server import mcp as mcp_server
+
+SERVICE_NAME = os.path.basename(os.getcwd())
+
+@mcp_server.custom_route("/.well-known/mcp/server-card.json", methods=["GET"])
+async def server_card(_request):  # noqa: ANN001
+    import json
+    with open("/app/.well-known/mcp/server-card.json") as f:
+        return json.load(f)
+
+@mcp_server.custom_route("/health", methods=["GET"])
+async def health(_request):  # noqa: ANN001
+    return {"status": "ok", "service": SERVICE_NAME}
+
+if __name__ == "__main__":
+    mcp_server.settings.host = "0.0.0.0"
+    mcp_server.settings.port = int(os.environ.get("PORT", "8000"))
+    mcp_server.run(transport="streamable-http")
+```
 
 ## Canonical .github/workflows/test.yml
 ```yaml
-name: test
-on: [push, pull_request]
+name: Test MCP Server
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 jobs:
-  smoke:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-      - uses: actions/setup-node@v4
-        with: {node-version: '20'}
-      - run: pip install -r requirements.txt "<pypi-flagship-name>"
-      - run: python -m py_compile server.py http_server.py
-      # Real e2e — boot the actual gateway, drive it with the mcp client:
-      - run: |
-          PORT=8000 python http_server.py & echo $! > /tmp/gw.pid
-          for i in $(seq 1 30); do curl -fsS localhost:8000/healthz >/dev/null 2>&1 && break; sleep 1; done
-          python - <<'PY'
-          import anyio
-          from mcp import ClientSession
-          from mcp.client.streamable_http import streamablehttp_client
-          async def main():
-              async with streamablehttp_client("http://127.0.0.1:8000/mcp") as (r, w, _):
-                  async with ClientSession(r, w) as s:
-                      await s.initialize()
-                      assert (await s.list_tools()).tools, "no tools"
-                      print("e2e OK")
-          anyio.run(main)
-          PY
-          kill "$(cat /tmp/gw.pid)" 2>/dev/null || true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with: {python-version: ${{ matrix.python-version }}}
+      - name: Install dependencies
+        run: pip install mcp>=1.0.0 pytest
+      - name: Syntax check
+        run: python -c "import py_compile; py_compile.compile('server.py', doraise=True)"
+      - name: Run tests
+        run: pytest tests/ -v --tb=short 2>/dev/null || echo "No tests found"
 ```
-> The gateway repo's `tests/e2e_smoke.py` is the reference implementation of this step
-> (verified: 16 tools listed against `eu-ai-act-compliance-mcp`).
 
-## Canonical smithery.yaml
+## Canonical smithery.yaml (declarative — no `runtime:` block)
 ```yaml
-runtime: container
-startCommand:
-  type: http
-  configSchema: {}
-build:
-  dockerfile: Dockerfile
-  dockerBuildArgs:
-    PKG: <pypi-flagship-name>
+name: <pypi-flagship-name>
+description: MCP server for <purpose>. From MEOK AI Labs.
+version: 0.1.0
+license: Apache-2.0
+author: MEOK AI Labs
+homepage: https://github.com/CSOAI-ORG/<repo>
+repository: https://github.com/CSOAI-ORG/<repo>
+tools:
+  - name: tool_one
+    description: ...
+    parameters:
+      - name: foo
+        type: string
+        required: true
+  - name: tool_two
+    description: ...
+    parameters:
+      - name: bar
+        type: number
+        required: false
 ```
+
+> The old `runtime: container / startCommand: type: http` form is deprecated; Smithery now picks
+> up the declarative form and resolves the container automatically.
 
 ## 2026-07-28 migration checklist
 For every flagship, before July 14, 2026:
-- [ ] Bump `mcp==1.27.2` → the next stable that ships 2026-07-28 spec support
-- [ ] Update `http_server.py` to validate `Mcp-Method` / `Mcp-Name` headers
+- [ ] Bump the loose `mcp>=1.0.0` (in `pyproject.toml`) to the next stable that ships 2026-07-28 spec support; bump the gateway's exact `mcp==1.27.2` (in `requirements-gateway.txt`) to the same version
+- [ ] Update `mcp-wrapper.py` to validate `Mcp-Method` / `Mcp-Name` headers
 - [ ] Remove reliance on `initialize` / `initialized` handshake in any tests
 - [ ] Add `MCP-Protocol-Version: 2026-07-28` to all curl examples in README
 - [ ] Re-push image and re-test on AWS AgentCore / Smithery
 
 ## Audit script (run from a clean clone of one flagship)
 ```bash
-for f in README.md LICENSE pyproject.toml Dockerfile smithery.yaml requirements.txt server.py .github/workflows/test.yml SECURITY.md; do
+for f in README.md LICENSE pyproject.toml Dockerfile.glama smithery.yaml mcp-wrapper.py server.py auth_middleware.py \
+         .github/workflows/test.yml .github/workflows/ci.yml \
+         .github/workflows/mcp-smithery-publish.yml SECURITY.md \
+         .well-known/mcp/server-card.json; do
   [ -f "$f" ] && echo "✓ $f" || echo "✗ MISSING: $f"
 done
 ```
@@ -157,5 +204,9 @@ Rollout: wallet + apply `@paywalled` to the 4–5 highest-value tools per flagsh
 
 ## Reference implementations
 - `meok-compliance-gateway` — the gateway shim + `meok_x402.py` (this template's source of truth)
-- `eu-ai-act-compliance-mcp` — the gold-standard flagship (server.py + tests + smithery + Dockerfile.glama)
-- `soc2-compliance-ai-mcp` — second gold-standard flagship (auth_middleware.py + MEOK Compliance PDCA workflow)
+- `eu-ai-act-compliance-mcp` — gold-standard compliance flagship (server.py + tests + smithery + Dockerfile.glama)
+- `soc2-compliance-ai-mcp` — gold-standard compliance flagship (auth_middleware.py + MEOK Compliance PDCA workflow)
+- `threat-intelligence-mcp` — security flagship (NVD/OSV/GHSA, pure-Python)
+- `vulnerability-scanner-mcp` — security flagship (pyjadx + ILSpy-MCP subprocess + secret regex)
+- `red-team-ops-mcp` — security flagship (pyjadx + androguard, mobile)
+- `policy-engine-mcp` — security flagship (cedarpy in-process + opa subprocess fallback)

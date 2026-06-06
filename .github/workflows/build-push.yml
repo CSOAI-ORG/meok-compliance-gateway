@@ -1,6 +1,6 @@
 name: build-and-push
 
-# Builds the four flagship compliance MCP images and pushes them to GHCR.
+# Builds the flagship MCP images and pushes them to GHCR.
 # This is what makes GCP_DEPLOY.md "Path B" real — without it, the
 # ghcr.io/csoai-org/<flagship>-mcp:latest images referenced there do not exist.
 #
@@ -42,6 +42,15 @@ jobs:
             pkg: nis2-compliance-mcp
           - flagship: cra
             pkg: cra-compliance-mcp
+          # === 2026-06-06 batch: 4 security/ops flagships ===
+          - flagship: threat-intelligence
+            pkg: threat-intelligence-mcp
+          - flagship: vulnerability-scanner
+            pkg: vulnerability-scanner-mcp
+          - flagship: red-team-ops
+            pkg: red-team-ops-mcp
+          - flagship: policy-engine
+            pkg: policy-engine-mcp
     steps:
       - uses: actions/checkout@v4
 
@@ -103,6 +112,10 @@ jobs:
           - flagship: dora
           - flagship: nis2
           - flagship: cra
+          - flagship: threat-intelligence
+          - flagship: vulnerability-scanner
+          - flagship: red-team-ops
+          - flagship: policy-engine
     steps:
       - name: Generate SBOM (SPDX JSON)
         uses: anchore/sbom-action@v0
