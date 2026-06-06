@@ -9,4 +9,4 @@
 # 2026-07-28 spec migration is an `mcp` SDK upgrade (+ flagship code), tracked
 # in LISTING.md — bump the pin below deliberately when the SDK ships support.
 mcp==1.27.2
-uvicorn[standard]==0.48.0
+uvicorn[standard]==0.49.0
