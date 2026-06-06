@@ -1,0 +1,52 @@
+{
+  "name": "meok-compliance-gateway",
+  "description": "MCP gateway for EU AI Act, NIS2, DORA, CRA, GDPR, HIPAA, SOC2, CSRD compliance. Streamable HTTP shim with x402 per-call monetization.",
+  "version": "1.8.1",
+  "protocol_version": "2025-03-26",
+  "vendor": {
+    "name": "MEOK AI LTD",
+    "url": "https://meok.ai",
+    "email": "nicholas@meok.ai"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/CSOAI-ORG/meok-compliance-gateway",
+  "homepage": "https://meok.ai",
+  "documentation": "https://github.com/CSOAI-ORG/meok-compliance-gateway/blob/main/README.md",
+  "support": {
+    "email": "security@meok.ai",
+    "security_policy": "https://github.com/CSOAI-ORG/meok-compliance-gateway/blob/main/SECURITY.md"
+  },
+  "tools": [
+    {
+      "name": "healthz",
+      "description": "Gateway health check endpoint",
+      "parameters": {}
+    },
+    {
+      "name": "mcp",
+      "description": "MCP streamable HTTP endpoint for compliance tools",
+      "parameters": {}
+    }
+  ],
+  "transports": [
+    {
+      "type": "http",
+      "url": "https://meok.ai/mcp",
+      "content_type": "application/json"
+    }
+  ],
+  "authentication": {
+    "type": "none",
+    "description": "Public gateway; x402 payments required for paid tools only"
+  },
+  "x402": {
+    "enabled": true,
+    "payment_required_for": ["generate_signet_receipt", "finalize_bft_round"],
+    "asset": "usdc",
+    "network": "base"
+  },
+  "compliance": {
+    "frameworks": ["EU AI Act", "NIS2", "DORA", "CRA", "GDPR", "HIPAA", "SOC2", "CSRD"],
+    "certifications": ["ISO 42001"]
+  }
+}
