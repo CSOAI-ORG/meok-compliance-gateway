@@ -453,10 +453,14 @@ def compliance_gap_analyser(card_json: str, regulation: str | None = None, ctx=N
             continue
         if "." in field:
             top, sub = field.split(".", 1)
-            value = (card.get(top) or {}).get(sub) if isinstance(card.get(top), dict) else None
+            top_obj = card.get(top)
+            value = (top_obj or {}).get(sub) if isinstance(top_obj, dict) else None
         else:
             value = card.get(field)
-        if value in (None, "", [], {}):
+        # "Missing" = absent (None) or an empty-string placeholder.
+        # An empty list / dict counts as the operator declaring the absence
+        # of any items (e.g. `forbiddenUseCases: []` == "I claim none").
+        if value is None or value == "":
             gaps.append({
                 "check_id": c.id,
                 "regulation": c.regulation.value,

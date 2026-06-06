@@ -14,6 +14,8 @@ from agentaudit.server import (
     get_compliance_matrix, score_agent, create_audit_trail,
     get_safety_experts, generate_signet_receipt, cast_bft_vote,
     get_bft_status, register_expert, finalize_bft_round, x402_spending_report,
+    compliance_gap_analyser, expert_quorum_consult,
+    audit_trail_export_anchored, threat_intel_lookup,
 )
 
 
