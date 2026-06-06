@@ -50,7 +50,16 @@ session, duplicate work. Follow them exactly.
 
 ## Current open work (update this list when it changes)
 
-- PR board (all x402): gateway #5, eu-ai-act #6, dora #2, nis2 #1, cra #1 —
-  green + CLEAN, awaiting Nick's review. Do not merge.
+- PR board: gateway #5 (x402 + hardening), gateway #6 (AgentAudit A2A proxy),
+  eu-ai-act #6, dora #2, nis2 #1, cra #1 — all green + MERGEABLE (verified
+  2026-06-06), awaiting Nick's review. Do not merge.
+- In flight on `feat/agentaudit-server`: x402 paywire test coverage (a crashed
+  session's conftest/test_x402 survive in stash@{0} parent `241a5a3` — see
+  session memory `agentaudit-paywire-tests`); dependabot + codeql + .gitignore
+  staged in local commit `c54d10d` (unpushed as of 2026-06-06).
+- Scorecard follow-ups (from FLEET_SCORE.md / keystone_SECREVIEW.md):
+  CODEOWNERS + cosign image signing + x402 property tests land via gateway #5;
+  branch protection is Nick-only (403 for PATs, UI flip); fleet-wide propagation
+  goes through FLEET_BASE.md, never per-repo patches.
 - Backlog: MCP 2026-07-28 stateless migration spike; `.well-known` Server Cards;
   GHCR `eu-ai-act-mcp` visibility flip (Nick, UI-only).
