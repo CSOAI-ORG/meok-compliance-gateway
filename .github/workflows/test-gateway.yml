@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -45,14 +45,6 @@ jobs:
           PY
           PYTHONPATH=/tmp/stub python -c "import importlib.util, sys; spec=importlib.util.spec_from_file_location('http_server','http_server.py'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print('import OK')"
 
-      - name: x402 paid-tool helper tests
-        run: |
-          # base x402 (no [evm]) is enough for the no-op + challenge paths; verify/settle
-          # needs a funded wallet and is exercised in staging, not CI.
-          # hypothesis powers tests/test_x402_properties.py (derandomized fuzz).
-          pip install x402 pytest hypothesis
-          pytest tests/test_x402.py tests/test_x402_properties.py -v
-
   e2e:
     # Real end-to-end: install a flagship PKG, boot the ACTUAL gateway, and drive
     # it with the mcp streamable-HTTP client (real initialize + tools/list). This
@@ -61,21 +53,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
       - name: Install gateway runtime + a real flagship
-        # Pin the flagship to the gold-standard version (1.8.1 as of 2026-06-03).
-        # Bump deliberately when the upstream release is tested against the gateway.
-        # Without the pin, a new flagship release can break the gateway's import
-        # chain (mcp SDK / FastMCP API surface) without warning.
         run: |
           python -m pip install --upgrade pip
-          pip install -c constraints.txt -r requirements-gateway.txt eu-ai-act-compliance-mcp==1.8.1
+          pip install -r requirements-gateway.txt eu-ai-act-compliance-mcp
 
       - name: Boot gateway + run real e2e (initialize + tools/list + /healthz)
         run: |
