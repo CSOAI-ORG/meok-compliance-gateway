@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "CSOAI-ORG/meok-compliance-gateway",
+  "version": "1.0.0",
+  "description": "MEOK Compliance Gateway — streamable-HTTP / containerized builds of MEOK AI Labs compliance MCP servers for cloud marketplaces (AWS Bedrock AgentCore, Google, Azure, Smithery) and x402 monetization.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CSOAI-ORG/meok-compliance-gateway",
+    "source": "https://github.com/CSOAI-ORG/meok-compliance-gateway"
+  },
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/csoai-org/meok-compliance-gateway",
+      "version": "1.0.0",
+      "transport": {
+        "type": "streamable-http"
+      }
+    }
+  ]
+}
