@@ -8,7 +8,7 @@ AgentAudit is the regulatory-compliance conscience layer for AI-agent protocols.
 ## Quick Start
 
 ```bash
-# 1. Install
+# 1. Install (free / MIT)
 pip install -r requirements.txt
 
 # 2. Run the MCP server (stdio)
@@ -16,6 +16,10 @@ python -m agentaudit.server
 
 # 3. Or run the streamable-HTTP gateway
 python http_server.py        # listens on 0.0.0.0:8000
+
+# 4. Opt in to per-call monetization (priced tools)
+pip install 'agentaudit[x402]'
+X402_ENABLED=1 X402_PAY_TO=0xYourBaseWallet python -m agentaudit.server
 ```
 
 ## OpenScore Safety Experts (14)
@@ -96,11 +100,33 @@ docker run -p 8000:8000 agentaudit
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `8000` | HTTP listener port |
-| `X402_ENABLED` | `0` | Enable x402 paywall |
-| `X402_PAY_TO` | — | EVM settlement address |
-| `X402_PRICE` | `$0.10` | Default tool price |
 | `SIGNET_SEED` | — | Ed25519 signing key seed (hex) |
 | `SIGNET_DID` | `did:web:agentaudit.meok.ai` | Signet signer DID |
+| `X402_ENABLED` | `0` | Enable x402 paywall on the priced tools below. **Off by default** — free self-host is unaffected. |
+| `X402_PAY_TO` | — | EVM settlement address (Coinbase CDP receiving wallet) |
+| `X402_NETWORK` | `eip155:8453` | Base mainnet (`eip155:84532` for Base Sepolia) |
+| `X402_PRICE` | `$0.10` | Default tool price (per-tool overrides win) |
+| `X402_ASSET` | USDC for network | Token contract; defaults to canonical USDC for the network |
+| `X402_FACILITATOR_URL` | `https://x402.org/facilitator` | Override the x402 facilitator endpoint |
+| `X402_TIMEOUT` | `300` | Payment-required timeout (seconds) |
+
+## Per-call monetization (x402)
+
+Three tools are priced for autonomous-agent callers:
+
+| Tool | Price | Use it for |
+|------|-------|-----------|
+| `generate_signet_receipt` | $0.05 | Issue a tamper-evident Ed25519 receipt for any hash |
+| `scan_shadow_agents` | $0.10 | Discover rogue A2A agents on candidate URLs |
+| `finalize_bft_round` | $0.50 | Tally a BFT round and mint a Signet attestation (consensus-as-a-service) |
+
+All other tools are free and stay free. Payment travels in MCP request `_meta["x402/payment"]`
+(spec-correct x402-over-MCP, **not** HTTP 402 — MCP clients can't read HTTP status).
+The challenge comes back as a `ToolError` whose JSON text contains the
+`x402/payment-response` envelope with `accepts[0].amount` in atomic USDC (6dp).
+
+Use `x402_spending_report` (free) to audit your call volume — cross-check the
+truncated payer addresses against your facilitator dashboard.
 
 ## License
 
