@@ -5,42 +5,18 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    commit-message:
-      prefix: "chore(deps)"
     labels:
       - "dependencies"
-
-  - package-ecosystem: "pip"
-    directory: "/agentaudit"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 3
     commit-message:
-      prefix: "chore(deps)"
-    labels:
-      - "dependencies"
+      prefix: "deps"
 
-  # GitHub Actions — auto-bump 3rd-party action SHAs. We pin by SHA in our
-  # workflows (see Stage 5.5), so dependabot opens PRs that move each pinned
-  # SHA to the latest matching commit, gated on the workflows running green
-  # on the new SHAs. The 'dependency-configuration' check expects this
-  # ecosystem to be present + a config block; this satisfies both.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    commit-message:
-      prefix: "ci(actions)"
     labels:
       - "dependencies"
-      - "ci"
-    groups:
-      # Group all patch-level action bumps into a single PR to keep the
-      # review queue manageable.
-      patch-and-minor:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
