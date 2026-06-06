@@ -341,7 +341,7 @@ def test_openscore_bft_penalty() -> None:
 from agentaudit.server import (
     get_compliance_matrix, score_agent, create_audit_trail,
     get_safety_experts, generate_signet_receipt, cast_bft_vote,
-    get_bft_status, register_expert,
+    get_bft_status, register_expert, finalize_bft_round, x402_spending_report,
 )
 
 
@@ -434,3 +434,74 @@ def test_register_expert_invalid() -> None:
     out = register_expert(99, "{}")
     data = json.loads(out)
     assert "error" in data
+
+
+# ── Paid tools (smoke, X402_ENABLED unset → transparent) ───────
+
+
+def test_finalize_bft_round_consensus() -> None:
+    """finalize_bft_round tallies votes, mints a Signet receipt for the majority hash."""
+    sid = "session-finalize-1"
+    cast_bft_vote(sid, "n1", "hashW", total_nodes=5)
+    cast_bft_vote(sid, "n2", "hashW")
+    cast_bft_vote(sid, "n3", "hashW")  # quorum = 3 for 5 nodes
+    out = finalize_bft_round(sid)
+    data = json.loads(out)
+    assert data["consensus_reached"] is True
+    assert data["majority_hash"] == "hashW"
+    assert "signet_receipt" in data
+    assert data["signet_receipt"]["entry_hash"] == f"bft:{sid}:hashW"
+    assert "signature" in data["signet_receipt"]
+
+
+def test_finalize_bft_round_no_consensus() -> None:
+    """Without quorum, finalize still runs and surfaces a Signet receipt for the leading hash."""
+    sid = "session-finalize-split"
+    cast_bft_vote(sid, "n1", "hashX", total_nodes=5)
+    cast_bft_vote(sid, "n2", "hashY", total_nodes=5)
+    out = finalize_bft_round(sid)
+    data = json.loads(out)
+    assert data["consensus_reached"] is False
+    # Leading hash is still attested so the buyer can show "what we had at round-end".
+    assert "signet_receipt" in data
+
+
+def test_finalize_bft_round_no_session() -> None:
+    out = finalize_bft_round("nope-no-such-session")
+    data = json.loads(out)
+    assert "error" in data
+
+
+def test_x402_spending_report_empty() -> None:
+    out = x402_spending_report()
+    data = json.loads(out)
+    assert "total_calls" in data
+    assert "by_tool" in data
+    assert "recent" in data
+    # The report itself is free and doesn't count as a paid call.
+    assert data["total_calls"] == 0
+
+
+def test_x402_spending_report_records_paid_call(x402_enabled, monkeypatch) -> None:
+    """A verified paid call must show up in the spending report."""
+    from agentaudit import x402 as xm
+    from tests.test_x402 import _FakeResourceServer, _FakeVerify, _ctx_with_meta  # type: ignore[import-not-found]
+
+    fake = _FakeResourceServer(verify=_FakeVerify(is_valid=True))
+    monkeypatch.setattr(xm, "_resource_server", lambda: fake)
+
+    def tool(x, ctx):
+        return x
+
+    wrapped = xm.paywalled(price="$0.10", tool_name="spending_test_tool")(tool)
+    ctx = _ctx_with_meta(meta={xm.PAYMENT_META_KEY: {
+        "payload": {"authorization": {"from": "0x1234567890abcdef1234567890abcdef12345678"}}
+    }})
+    wrapped("hi", ctx=ctx)
+
+    out = x402_spending_report()
+    data = json.loads(out)
+    assert data["total_calls"] >= 1
+    assert "spending_test_tool" in data["by_tool"]
+    # Payer should be the truncated address, not the full one.
+    assert any("0x12345678" in r["payer"] for r in data["recent"])

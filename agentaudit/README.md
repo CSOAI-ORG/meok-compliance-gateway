@@ -48,13 +48,15 @@ python http_server.py        # listens on 0.0.0.0:8000
 | `append_audit_event` | Free | Log an interaction with optional BFT + blockchain anchor. |
 | `verify_audit_trail` | Free | Verify chain integrity + Signet signatures. |
 | `dump_audit_trail` | Free | Export trail as JSON. |
-| `generate_signet_receipt` | Free | Create a standalone Ed25519 receipt for any hash. |
+| `generate_signet_receipt` | **$0.05** | Create a standalone Ed25519 receipt for any hash. |
 | `cast_bft_vote` | Free | Vote in a 2f+1 BFT consensus round. |
 | `get_bft_status` | Free | Query BFT consensus state. |
 | `register_expert` | Free | Register an MCP server as a safety expert candidate. |
 | `scan_shadow_agents` | **$0.10** | Probe URLs for rogue A2A agents. |
+| `finalize_bft_round` | **$0.50** | Tally a BFT round + mint a Signet receipt for the majority hash (consensus-as-a-service). |
+| `x402_spending_report` | Free | Rolling log of verified paid calls + per-tool counts (cross-check vs your facilitator dashboard). |
 
-*Paid tools require `X402_ENABLED=1` and a valid `_meta["x402/payment"]` token.*
+*Paid tools require `X402_ENABLED=1` and a valid `_meta["x402/payment"]` token. They are **off by default** — free self-host and existing builds are unaffected.*
 
 ## Architecture
 

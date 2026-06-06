@@ -22,7 +22,7 @@ from .audit_trail import AuditTrail, AuditEntry
 from .openscore import openscore, OpenScoreResult
 from .signet import SignetKey, SignetReceipt, sign_entry, verify_receipt
 from .bft import BFTConsensus
-from .x402 import paywalled
+from .x402 import paywalled, spending_snapshot
 
 # ── FastMCP singleton ──────────────────────────────────────────
 mcp = FastMCP("agentaudit")
@@ -255,8 +255,9 @@ def dump_audit_trail(session_id: str) -> str:
     return trail.to_json()
 
 
-@mcp.tool(description="Generate a standalone Signet receipt for an arbitrary hash.")
-def generate_signet_receipt(entry_hash: str, blockchain_anchor: str | None = None) -> str:
+@mcp.tool(description="COST WARNING: $0.05 per call — Generate a standalone Signet receipt for an arbitrary hash.")
+@paywalled(price="$0.05", tool_name="generate_signet_receipt")
+def generate_signet_receipt(entry_hash: str, blockchain_anchor: str | None = None, ctx=None) -> str:
     """Create a cryptographically signed receipt for any hash string.
 
     Parameters
@@ -317,6 +318,38 @@ def cast_bft_vote(session_id: str, node_id: str, vote_hash: str, total_nodes: in
         "quorum": bft.quorum,
         "consensus_reached": reached,
         "majority_hash": bft.majority_hash,
+    }, indent=2)
+
+
+@mcp.tool(description="COST WARNING: $0.50 per call — Finalize a BFT round, seal the majority hash with a Signet receipt.")
+@paywalled(price="$0.50", tool_name="finalize_bft_round")
+def finalize_bft_round(session_id: str, ctx=None) -> str:
+    """Tally a BFT round and mint a Signet receipt for the majority hash.
+
+    Consensus-as-a-service: the BFT tally is in-memory; this tool is the priced
+    gate that turns a loose agreement into a tamper-evident attestation usable
+    as on-chain evidence or for cross-party reconciliation.
+
+    Parameters
+    ----------
+    session_id : str
+        The BFT session to finalize (created via cast_bft_vote).
+    """
+    bft = _bft_states.get(session_id)
+    if bft is None:
+        return json.dumps({"error": f"No BFT state for session {session_id!r}."})
+    if not bft.votes:
+        return json.dumps({"error": "No votes cast in this round."})
+    majority = bft.majority_hash or "<no-majority>"
+    receipt = sign_entry(f"bft:{session_id}:{majority}", _signet())
+    return json.dumps({
+        "session_id": session_id,
+        "round_id": bft.round_id,
+        "quorum": bft.quorum,
+        "votes_cast": len(bft.votes),
+        "consensus_reached": bft.consensus_reached,
+        "majority_hash": bft.majority_hash,
+        "signet_receipt": json.loads(receipt.to_json()),
     }, indent=2)
 
 
@@ -387,6 +420,20 @@ def scan_shadow_agents(candidate_urls: str, ctx=None) -> str:
             }
         )
     return json.dumps(out, indent=2)
+
+
+# ── x402 observability ─────────────────────────────────────────
+
+
+@mcp.tool(description="Return the rolling log of verified x402 paid calls (free observability).")
+def x402_spending_report() -> str:
+    """Surface recent paid-call volume + per-tool counts for buyer reconciliation.
+
+    Reads from an in-memory rolling log (max 10k entries) maintained by the
+    @paywalled wrapper. No PII: payer is the truncated address embedded in the
+    x402 payment payload. Cross-check this against your facilitator dashboard.
+    """
+    return json.dumps(spending_snapshot(), indent=2)
 
 
 # ── Internal helpers ───────────────────────────────────────────

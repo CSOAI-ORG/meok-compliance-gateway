@@ -39,6 +39,8 @@ import functools
 import json
 import logging
 import os
+import time
+from collections import deque
 from typing import Any, Callable, Optional
 
 log = logging.getLogger("meok.x402")
@@ -51,6 +53,62 @@ _paid_call: contextvars.ContextVar[bool] = contextvars.ContextVar("meok_x402_pai
 def is_paid_call() -> bool:
     """True if the current tool invocation is backed by a verified x402 payment."""
     return _paid_call.get()
+
+# Rolling in-memory log of verified paid calls. Bounded so a long-running server
+# doesn't grow unbounded. Surfaced via x402_spending_report (free observability
+# tool) so enterprise buyers can audit their call volume. NEVER persisted to
+# ~/.meok/ — that directory holds the live fleet counters and is hermetic to tests.
+_PAID_LOG: deque[dict[str, Any]] = deque(maxlen=10_000)
+
+
+def _record_paid_call(tool_name: str, price: str, payer: str) -> None:
+    """Append a single record to the rolling paid-call log. Best-effort, no I/O."""
+    _PAID_LOG.append({
+        "tool": tool_name,
+        "price": price,
+        "payer": payer,
+        "ts": time.time(),
+    })
+
+
+def spending_snapshot() -> dict[str, Any]:
+    """Return the current in-memory paid-call log + summary stats.
+
+    Free observability endpoint — the gateway to enterprise buyers (reconciliation
+    against their facilitator dashboard). No PII: payer is the truncated hex
+    address embedded in the x402 payment payload, not a user identifier.
+    """
+    if not _PAID_LOG:
+        return {"total_calls": 0, "by_tool": {}, "recent": []}
+    by_tool: dict[str, int] = {}
+    for rec in _PAID_LOG:
+        by_tool[rec["tool"]] = by_tool.get(rec["tool"], 0) + 1
+    # Most-recent 50
+    recent = list(_PAID_LOG)[-50:]
+    return {
+        "total_calls": len(_PAID_LOG),
+        "by_tool": by_tool,
+        "recent": [
+            {"tool": r["tool"], "price": r["price"], "payer": r["payer"], "ts": r["ts"]}
+            for r in recent
+        ],
+    }
+
+
+def _payer_hint(payment: Any) -> str:
+    """Best-effort pull of a payer address from a payment payload, for the spending log."""
+    if isinstance(payment, dict):
+        # x402 evm payload nests the from address under payload.signature / authorization
+        for key in ("from", "payer", "address", "wallet"):
+            v = payment.get(key)
+            if isinstance(v, str) and v.startswith("0x"):
+                return v[:10] + "…" + v[-4:] if len(v) > 14 else v
+        auth = payment.get("payload", {}).get("authorization") if isinstance(payment.get("payload"), dict) else None
+        if isinstance(auth, dict):
+            f = auth.get("from")
+            if isinstance(f, str) and f.startswith("0x"):
+                return f[:10] + "…" + f[-4:] if len(f) > 14 else f
+    return "unknown"
 
 # x402/payment carries the signed payment; x402/payment-response carries the challenge.
 PAYMENT_META_KEY = "x402/payment"
@@ -205,6 +263,7 @@ def paywalled(price: Optional[str] = None, *, tool_name: Optional[str] = None) -
                 if not getattr(verify, "is_valid", False):
                     return _unpaid(name, price, getattr(verify, "invalid_reason", None) or "verification failed")
                 token = _paid_call.set(True)  # lets flagship rate-limiters waive the free-tier cap
+                _record_paid_call(name, price, _payer_hint(payment))
                 try:
                     result = fn(*args, **kwargs)
                 finally:
