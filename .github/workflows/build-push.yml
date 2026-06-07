@@ -22,6 +22,9 @@ on:
 permissions:
   contents: read
   packages: write
+  # cosign keyless signing (Signed-Releases scorecard check): the OIDC token
+  # binds the signature to this workflow run — no key material to manage/leak.
+  id-token: write
 
 concurrency:
   group: build-push-${{ github.ref }}
@@ -52,12 +55,12 @@ jobs:
           - flagship: policy-engine
             pkg: policy-engine-mcp
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: docker/setup-buildx-action@v3
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -82,6 +85,7 @@ jobs:
           PY
 
       - name: Build and push ${{ matrix.flagship }}
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -96,6 +100,17 @@ jobs:
             ghcr.io/csoai-org/${{ matrix.flagship }}-mcp:${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.flagship }}
           cache-to: type=gha,scope=${{ matrix.flagship }},mode=max
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign image (keyless OIDC)
+        # Signs by digest (not tag — tags are mutable) so marketplace buyers can
+        # `cosign verify` provenance against this repo's workflow identity.
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          cosign sign --yes "ghcr.io/csoai-org/${{ matrix.flagship }}-mcp@${DIGEST}"
 
   sbom-and-scan:
     # Generates an SBOM and vulnerability report for each flagship image.
@@ -143,7 +158,7 @@ jobs:
 
       - name: Upload scan artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: scan-${{ matrix.flagship }}
           path: |

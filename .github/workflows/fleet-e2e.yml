@@ -1,0 +1,58 @@
+name: fleet-e2e
+
+# Fleet-wide stateless e2e: boot the gateway against EACH flagship and assert
+# the real MCP flow + the 2026-07-28 stateless contract + a concurrency load
+# test. The PR-level `test-gateway` job runs this for one flagship on every PR;
+# this matrixed job exercises the whole flagship fleet, on demand and weekly,
+# so a flagship release that breaks the gateway's import/stateless behaviour is
+# caught before it ships to GHCR / AgentCore.
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 5 * * 1"  # Monday 05:00 UTC, before the scorecard/codeql jobs
+
+permissions:
+  contents: read
+
+jobs:
+  fleet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flagship: eu-ai-act-compliance-mcp
+          - flagship: dora-compliance-mcp
+          - flagship: nis2-compliance-mcp
+          - flagship: cra-compliance-mcp
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install gateway runtime + ${{ matrix.flagship }}
+        # Unpinned flagship here on purpose: this job's job is to catch a NEW
+        # flagship release breaking the gateway. The PR e2e job keeps the pin.
+        run: |
+          python -m pip install --upgrade pip
+          pip install -c constraints.txt -r requirements-gateway.txt "${{ matrix.flagship }}"
+
+      - name: Boot gateway (stateless) + e2e + stateless contract + load
+        run: |
+          PORT=8000 python http_server.py &
+          echo $! > /tmp/gateway.pid
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8000/healthz >/dev/null 2>&1 && break
+            sleep 1
+          done
+          python tests/e2e_smoke.py
+          GATEWAY_URL=http://127.0.0.1:8000/mcp python tests/stateless_check.py
+          GATEWAY_URL=http://127.0.0.1:8000 LOAD_N=200 LOAD_CONCURRENCY=50 python tests/load_test.py
+
+      - name: Stop gateway
+        if: always()
+        run: kill "$(cat /tmp/gateway.pid)" 2>/dev/null || true

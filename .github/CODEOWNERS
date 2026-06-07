@@ -1,0 +1,3 @@
+# Scorecard Code-Review check: route every PR to the maintainer for review.
+# CSOAI-ORG is a user account (verified via gh api users/CSOAI-ORG → type: User).
+* @CSOAI-ORG
