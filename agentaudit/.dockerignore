@@ -1,0 +1,31 @@
+# Keep the build context small — everything below is either regenerated
+# inside the image (`pip install`) or is local-only and irrelevant to the
+# runtime container.
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.hypothesis/
+.git/
+.gitignore
+.gitattributes
+.github/
+.claude/
+dist/
+build/
+.venv/
+venv/
+.env
+.env.*
+*.md
+!README.md
+tests/
+fuzz/
+DEPLOY.sh
+DEPLOY_AGENTAUDIT.sh
+PUBLISH.md
+OPENMOE_BFT_ALIGNMENT.md
+OPENMOE_BFT_EMPIRE_SPEC_v1.0.md
+smithery.yaml
