@@ -30,7 +30,6 @@ dependencies = [
 [project.optional-dependencies]
 x402 = ["x402[evm]==2.12.0"]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4.0", "hypothesis>=6.100.0"]
-fuzz = ["hypothesis>=6.100.0"]
 
 [project.urls]
 Homepage = "https://github.com/agentaudit-org/agentaudit"
@@ -38,3 +37,9 @@ Repository = "https://github.com/agentaudit-org/agentaudit"
 
 [project.scripts]
 agentaudit-server = "agentaudit.server:main"
+
+[tool.setuptools.packages.find]
+# Only the runtime package ships in the wheel; `tests/` and `fuzz/` are
+# repo-only (run via `pytest` from the checkout, not from the wheel).
+include = ["agentaudit*"]
+namespaces = false

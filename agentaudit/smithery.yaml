@@ -33,3 +33,10 @@ startCommand:
         X402_PRICE: config.x402_price || "$0.10",
       }
     })
+  exampleConfig:
+    # Free-tier preview: leave X402 disabled to call the 7 free tools.
+    # Set x402_enabled=true and provide a real EVM pay-to address to unlock
+    # the 8 priced tools (see README for tool list + costs).
+    x402_enabled: false
+    x402_pay_to: ""
+    x402_price: "$0.10"
