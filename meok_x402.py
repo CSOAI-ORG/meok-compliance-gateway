@@ -55,10 +55,10 @@ _paid_call: contextvars.ContextVar[bool] = contextvars.ContextVar("meok_x402_pai
 # inherits it. An attacker who reads it can forge any compliance attestation,
 # which breaks the entire attestation chain.
 #
-# Resolution order: AWS Secrets Manager → OS keyring → env (dev only, warns) →
-# fail closed. Env-only is rejected in production (`MEOK_ENV=production`).
-# See CRITICAL_FIXES_2026-06-08.md Fix #3 for the full rationale.
-_ATTESTATION_KEYRING_SERVICE = "meok.ai"
+# Resolution order: AWS Secrets Manager → meok_secrets (keyring → file, with
+# chmod 600) → env (dev only, warns) → fail closed. Env-only is rejected in
+# production (`MEOK_ENV=production`). See CRITICAL_FIXES_2026-06-08.md Fix #3
+# for the full rationale.
 _ATTESTATION_KEYRING_USER = "attestation-key"
 _ATTESTATION_AWS_SECRET_ID = "meok/attestation-key"
 
@@ -68,7 +68,7 @@ def _resolve_attestation_key() -> bytes:
 
     Order:
       1. AWS Secrets Manager (production).
-      2. OS keyring (macOS Keychain / Linux Secret Service / Windows Cred Mgr).
+      2. meok_secrets (keyring → file-with-chmod-600; ref impl of Fix #2).
       3. MEOK_ATTESTATION_KEY env var — only in dev, with a loud warning.
       4. Otherwise: fail closed (refuse to start an attestation issuer).
     """
@@ -81,20 +81,20 @@ def _resolve_attestation_key() -> bytes:
         if val:
             return val.encode()
     except ImportError:
-        pass  # boto3 not installed → skip to keyring
+        pass  # boto3 not installed → skip to meok_secrets
     except Exception as exc:  # noqa: BLE001
-        log.debug("AWS Secrets Manager lookup failed (will try keyring): %r", exc)
+        log.debug("AWS Secrets Manager lookup failed (will try meok_secrets): %r", exc)
 
-    # 2. OS keyring (dev path, cross-platform)
+    # 2. meok_secrets (the keystone's audited secret-store wrapper)
     try:
-        import keyring  # type: ignore
-        val = keyring.get_password(_ATTESTATION_KEYRING_SERVICE, _ATTESTATION_KEYRING_USER)
+        from meok_secrets import get_secret  # local module, stdlib-only
+        val = get_secret(_ATTESTATION_KEYRING_USER)
         if val:
             return val.encode()
     except ImportError:
-        pass
+        pass  # module not on path (e.g. running tests in isolation)
     except Exception as exc:  # noqa: BLE001
-        log.debug("keyring lookup failed (will try env): %r", exc)
+        log.debug("meok_secrets lookup failed (will try env): %r", exc)
 
     # 3. Env var fallback (dev/test ONLY)
     val = os.environ.get("MEOK_ATTESTATION_KEY")
@@ -105,24 +105,22 @@ def _resolve_attestation_key() -> bytes:
                 "MEOK_ATTESTATION_KEY was set in the environment, but MEOK_ENV=production. "
                 "Per the SOV3 master audit (CRITICAL #3) the HMAC signing key must NOT be "
                 "in an env var in production. Use AWS Secrets Manager (id="
-                f"{_ATTESTATION_AWS_SECRET_ID!r}) or the OS keyring (service="
-                f"{_ATTESTATION_KEYRING_SERVICE!r}, user={_ATTESTATION_KEYRING_USER!r})."
+                f"{_ATTESTATION_AWS_SECRET_ID!r}) or meok_secrets (name={_ATTESTATION_KEYRING_USER!r})."
             )
         log.warning(
             "MEOK_ATTESTATION_KEY read from env var in dev mode. "
-            "This is the audit-flagged CRITICAL #3 pattern — move to keyring or "
+            "This is the audit-flagged CRITICAL #3 pattern — move to meok_secrets / "
             "AWS Secrets Manager before MEOK_ENV=production."
         )
         return val.encode()
 
     # 4. Fail closed — never default to anything
     raise RuntimeError(
-        "MEOK_ATTESTATION_KEY not found in AWS Secrets Manager, OS keyring, or env. "
+        "MEOK_ATTESTATION_KEY not found in AWS Secrets Manager, meok_secrets, or env. "
         "Refusing to start attestation signing to prevent forgery. "
         f"Set it via: aws secretsmanager create-secret --name {_ATTESTATION_AWS_SECRET_ID} "
         f"--secret-string <32-bytes-base64>  OR  "
-        f"python -c \"import keyring; keyring.set_password({_ATTESTATION_KEYRING_SERVICE!r}, "
-        f"{_ATTESTATION_KEYRING_USER!r}, '<key>')\""
+        f"python -c \"import meok_secrets; meok_secrets.set_secret({_ATTESTATION_KEYRING_USER!r}, '<key>')\""
     )
 
 

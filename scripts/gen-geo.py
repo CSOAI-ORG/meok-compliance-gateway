@@ -47,6 +47,7 @@ CSOAI_ORG_URL = "https://github.com/CSOAI-ORG"
 
 # 7 key differentiators (per [[meok-deep-audit-2026-06-08]] P0-2 + KEY_DIFFERENTIATORS.md)
 # Factual, comparative, citation-ready. Per [[RUBRIC_EXTERNAL_COMMS.md]] — no war language.
+# Updated 2026-06-08 with #8 from the 76-server MCP master audit.
 KEY_DIFFERENTIATORS = [
     "**13 unified governance frameworks** in one deployment (vs OneTrust's 7; 48-hour deploy vs 9 months).",
     "**410 verbatim EU AI Act articles** ingested as parseable source-of-truth (vs summary-only competitors like Credo AI).",
@@ -55,6 +56,7 @@ KEY_DIFFERENTIATORS = [
     "**Only governance layer for 35,000+ MCP servers** — the only production layer bringing compliance to the Model Context Protocol ecosystem.",
     "**447 MIT-licensed public repos** — every framework, every MCP server, every integration auditable (vs typical 5-10 per company).",
     "**48-hour deployment** for the EU AI Act wedge, on-prem-ready for DORA (vs 2.5-9 months for competitors).",
+    "**$50B GRC market has no MCP strategy** — 13 of 15 GRC competitors have zero MCP presence; closest MCP competitor is `ark-forge/mcp-eu-ai-act` at 8 stars vs MEOK's 76 production servers.",
 ]
 
 # Real cross-hive integration paths (no PBN — each link is justified)
@@ -291,7 +293,7 @@ def gen_index_html(d: dict) -> str:
     if d['domain'] == 'meok.ai' and not any('differentiator' in q.get("q", "").lower() for q in faq):
         diff_text = "; ".join(d_item.split(" — ")[0].replace("**", "") for d_item in KEY_DIFFERENTIATORS)
         faq.append({
-            "q": "What are MEOK's 7 key differentiators?",
+            "q": "What are MEOK's 8 key differentiators?",
             "a": diff_text + " — see KEY_DIFFERENTIATORS.md for citations."
         })
     faq_items = "\n".join(
