@@ -599,6 +599,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.05", "free_tier": "1",
         "isolated_overrides": ["payment_data_meokai"],
         "revenue": "Stripe self-serve on compliance.meok.ai; x402 micro-charges on per-attestation lookups.",
+        "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "4900",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "csoai.org", "tier": "flagship",
@@ -611,9 +613,11 @@ DOMAIN_REGISTRY = [
         "entities": ["framework", "jurisdiction", "audit", "obligation", "consensus"],
         "relations": ["framework→jurisdiction", "audit→framework", "obligation→jurisdiction"],
         "initial_agents": ["Governance Analyst", "Cross-Mapping Specialist", "Audit Lead", "Council Recorder"],
-        "x402_enabled": True, "x402_price": "1.50", "free_tier": "0",
+        "x402_enabled": True, "x402_price": "3.00", "free_tier": "0",
         "isolated_overrides": [],
-        "revenue": "£1,499/mo Enterprise suite, £5,000 48h audit (per DOMAINS.md).",
+        "revenue": "£1,499/mo Enterprise suite, £5,000 48h audit (per DOMAINS.md). Per-call x402 re-priced $1.50→$3.00 (high-trust audit, justified per [[meok-deep-audit-2026-06-08]] P1-2).",
+        "pricing_tier": "enterprise_custom", "seat_price_usd": "200", "monthly_floor_usd": "50000",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "proofof.ai", "tier": "flagship",
@@ -626,9 +630,11 @@ DOMAIN_REGISTRY = [
         "entities": ["attestation", "signing_key", "evidence", "verifier"],
         "relations": ["attestation→signing_key", "attestation→evidence", "verifier→attestation"],
         "initial_agents": ["Attestation Verifier", "Signature Inspector", "Trust Score Calculator"],
-        "x402_enabled": True, "x402_price": "5.00", "free_tier": "1",
+        "x402_enabled": True, "x402_price": "10.00", "free_tier": "1",
         "isolated_overrides": [],
-        "revenue": "£5/attestation lookup. Easiest new revenue line in the portfolio (DOMAINS.md).",
+        "revenue": "£5/attestation lookup. Easiest new revenue line in the portfolio (DOMAINS.md). Per-call x402 re-priced $5→$10 (signed-attestation value vs web search; [[meok-deep-audit-2026-06-08]] P1-2).",
+        "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "4900",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "cobolbridge.ai", "tier": "flagship",
@@ -644,6 +650,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "2.00", "free_tier": "0",
         "isolated_overrides": ["customer_source_code"],
         "revenue": "£199/mo Pro + £1,999/mo Enterprise + £290k/enterprise project floor.",
+        "pricing_tier": "enterprise_custom", "seat_price_usd": "150", "monthly_floor_usd": "19990",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     # Governance bundle (9)
     {
@@ -660,6 +668,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.50", "free_tier": "1",
         "isolated_overrides": [],
         "revenue": "Bundle with csoai.org suite.",
+        "pricing_tier": "team_29", "seat_price_usd": "29", "monthly_floor_usd": "2900",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "agisafe.ai", "tier": "governance",
@@ -675,6 +685,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": False, "x402_price": "0.00", "free_tier": "100",
         "isolated_overrides": [],
         "revenue": "Research hub; csoai.org traffic absorber. Or flip for $10-25k.",
+        "pricing_tier": "micro_free", "seat_price_usd": "0", "monthly_floor_usd": "0",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "asisecurity.ai", "tier": "governance",
@@ -690,6 +702,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.30", "free_tier": "1",
         "isolated_overrides": [],
         "revenue": "Bundle with csoai.org suite. CISOs as buyers.",
+        "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "4900",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "biasdetectionof.ai", "tier": "governance",
@@ -705,6 +719,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.10", "free_tier": "3",
         "isolated_overrides": [],
         "revenue": "£299/mo (cheapest single-MCP SaaS; fastest to monetise per DOMAINS.md).",
+        "pricing_tier": "team_29", "seat_price_usd": "29", "monthly_floor_usd": "299",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "dataprivacyof.ai", "tier": "governance",
@@ -720,6 +736,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.20", "free_tier": "1",
         "isolated_overrides": ["data_subject_pii"],
         "revenue": "Bundle with biasdetectionof.ai + accountabilityof.ai as GDPR+EU AI Act package.",
+        "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "4900",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "ethicalgovernanceof.ai", "tier": "governance",
@@ -735,6 +753,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": False, "x402_price": "0.00", "free_tier": "5",
         "isolated_overrides": [],
         "revenue": "Redirect to csoai.org (don't dilute brand).",
+        "pricing_tier": "micro_free", "seat_price_usd": "0", "monthly_floor_usd": "0",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "safetyof.ai", "tier": "governance",
@@ -750,6 +770,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.40", "free_tier": "1",
         "isolated_overrides": [],
         "revenue": "Landing page pointing at csoai.org suite.",
+        "pricing_tier": "team_29", "seat_price_usd": "29", "monthly_floor_usd": "2900",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "transparencyof.ai", "tier": "governance",
@@ -765,6 +787,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.75", "free_tier": "1",
         "isolated_overrides": [],
         "revenue": "£399-£1,499/mo. Most credible of the *of.ai cluster for actual build (DOMAINS.md).",
+        "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "1499",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "councilof.ai", "tier": "governance",
@@ -780,6 +804,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "1.00", "free_tier": "0",
         "isolated_overrides": [],
         "revenue": "Audits every cross-hive Memoria commit; flip for $5-15k OR keep as governance infra.",
+        "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "4900",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     # UK construction cluster
     {
@@ -796,6 +822,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.05", "free_tier": "1",
         "isolated_overrides": [],
         "revenue": "Marketplace fees + £99-499/mo per rental co.",
+        "pricing_tier": "team_29", "seat_price_usd": "29", "monthly_floor_usd": "99",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "muckaway.ai", "tier": "uk_construction",
@@ -811,6 +839,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.05", "free_tier": "1",
         "isolated_overrides": [],
         "revenue": "5-10% marketplace + £99-499/mo per rental co.",
+        "pricing_tier": "team_29", "seat_price_usd": "29", "monthly_floor_usd": "99",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "planthire.ai", "tier": "uk_construction",
@@ -826,6 +856,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.10", "free_tier": "1",
         "isolated_overrides": [],
         "revenue": "8-15% marketplace fees (equipment values $1k-10k/day).",
+        "pricing_tier": "team_29", "seat_price_usd": "29", "monthly_floor_usd": "199",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "commercialvehicle.ai", "tier": "uk_construction",
@@ -841,6 +873,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.15", "free_tier": "1",
         "isolated_overrides": [],
         "revenue": "Cluster with muckaway/grabhire/planthire as one marketing site.",
+        "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "490",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     # Vertical SaaS
     {
@@ -857,6 +891,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.50", "free_tier": "3",
         "isolated_overrides": ["client_property_data"],
         "revenue": "£199/mo solo → £999/mo firm. £47B legal tech market.",
+        "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "199",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "fishkeeper.ai", "tier": "vertical_saas",
@@ -872,6 +908,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": False, "x402_price": "0.00", "free_tier": "100",
         "isolated_overrides": [],
         "revenue": "Consumer subscription £4.99-19.99/mo. Reddit/TikTok brand-build.",
+        "pricing_tier": "team_29", "seat_price_usd": "29", "monthly_floor_usd": "5",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "koikeeper.ai", "tier": "vertical_saas",
@@ -887,6 +925,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "1.00", "free_tier": "0",
         "isolated_overrides": ["premium_pond_data"],
         "revenue": "£199/mo premium tier. Niche, affluent, competition is KoiQuanta.",
+        "pricing_tier": "team_29", "seat_price_usd": "29", "monthly_floor_usd": "199",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     # Flip / defer
     {
@@ -903,6 +943,9 @@ DOMAIN_REGISTRY = [
         "x402_enabled": False, "x402_price": "0.00", "free_tier": "100",
         "isolated_overrides": [],
         "revenue": "Defer or flip. Affiliate revenue if built.",
+        "pricing_tier": "micro_free", "seat_price_usd": "0", "monthly_floor_usd": "0",
+        "valuation_usd": "8000", "asking_price_usd": "12000", "flip_status": "candidate",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "pokerhud.ai", "tier": "flip",
@@ -918,6 +961,9 @@ DOMAIN_REGISTRY = [
         "x402_enabled": False, "x402_price": "0.00", "free_tier": "0",
         "isolated_overrides": [],
         "revenue": "FLIP. No MCP fit; legal grey.",
+        "pricing_tier": "micro_free", "seat_price_usd": "0", "monthly_floor_usd": "0",
+        "valuation_usd": "5000", "asking_price_usd": "15000", "flip_status": "candidate",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "loopfactory.ai", "tier": "flip",
@@ -933,6 +979,9 @@ DOMAIN_REGISTRY = [
         "x402_enabled": False, "x402_price": "0.00", "free_tier": "10",
         "isolated_overrides": [],
         "revenue": "Defer or flip. Crowded market.",
+        "pricing_tier": "micro_free", "seat_price_usd": "0", "monthly_floor_usd": "0",
+        "valuation_usd": "15000", "asking_price_usd": "25000", "flip_status": "candidate",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "optimobile.ai", "tier": "flip",
@@ -948,6 +997,9 @@ DOMAIN_REGISTRY = [
         "x402_enabled": False, "x402_price": "0.00", "free_tier": "10",
         "isolated_overrides": [],
         "revenue": "FLIP. Weak angle vs Firebase/Crashlytics.",
+        "pricing_tier": "micro_free", "seat_price_usd": "0", "monthly_floor_usd": "0",
+        "valuation_usd": "6000", "asking_price_usd": "10000", "flip_status": "candidate",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "socialmediamananger.ai", "tier": "expire",
@@ -963,6 +1015,9 @@ DOMAIN_REGISTRY = [
         "x402_enabled": False, "x402_price": "0.00", "free_tier": "0",
         "isolated_overrides": [],
         "revenue": "Let expire. Typo'd domain traffic is near-zero; resale value is negative.",
+        "pricing_tier": "micro_free", "seat_price_usd": "0", "monthly_floor_usd": "0",
+        "valuation_usd": "100", "asking_price_usd": "100", "flip_status": "expire",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     # Infra hives (3) — the OpenMoE / openMCP / keystone trio
     {
@@ -979,6 +1034,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.01", "free_tier": "10",
         "isolated_overrides": [],
         "revenue": "Per-call BFT inference; signet receipts monetisable via x402.",
+        "pricing_tier": "micro_paid", "seat_price_usd": "0", "monthly_floor_usd": "0",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "openMCP", "tier": "infra",
@@ -994,6 +1051,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": False, "x402_price": "0.00", "free_tier": "5",
         "isolated_overrides": [],
         "revenue": "Free / OSS — drives traffic to monetised flagships.",
+        "pricing_tier": "micro_free", "seat_price_usd": "0", "monthly_floor_usd": "0",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
     {
         "domain": "meok-compliance-gateway", "tier": "infra",
@@ -1009,6 +1068,8 @@ DOMAIN_REGISTRY = [
         "x402_enabled": True, "x402_price": "0.05", "free_tier": "1",
         "isolated_overrides": ["x402_payment_data", "usage_counters"],
         "revenue": "x402 micro-settlement per tool call. 4-way split on cross-hive calls.",
+        "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "490",
+        "stripe_live_ready": False, "vercel_deployed": False,
     },
 ]
 
