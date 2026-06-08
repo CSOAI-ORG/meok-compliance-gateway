@@ -25,7 +25,7 @@ class DiscoveredAgent:
 class ShadowScanner:
     """Probe a list of candidate URLs for A2A `/.well-known/agent.json` endpoints."""
 
-    WELL_KNOWN = "/.well-known/agent.json"
+    WELL_KNOWN = "/.well-known/agent-card.json"
 
     def __init__(self, timeout: float = 5.0) -> None:
         self.timeout = timeout

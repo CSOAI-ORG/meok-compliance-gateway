@@ -74,9 +74,9 @@ def get_safety_experts(domain: str | None = None, regulation: str | None = None)
     return json.dumps([_expert_dict(e) for e in experts], indent=2)
 
 
-@mcp.tool(description="COST WARNING: $0.10 per call — Score an A2A Agent Card using the OpenScore algorithm (14 experts + BFT).")
+@mcp.tool(description="COST WARNING: $0.10 per call — Score an A2A Agent Card using the OpenScore algorithm (14 experts + BFT + optional audit trail).")
 @paywalled(price="$0.10", tool_name="score_agent")
-def score_agent(agent_id: str, card_json: str, bft_round_json: str | None = None, ctx=None) -> str:
+def score_agent(agent_id: str, card_json: str, bft_round_json: str | None = None, session_id: str | None = None, ctx=None) -> str:
     """Return an OpenScore JSON for the given Agent Card.
 
     Parameters
@@ -87,6 +87,8 @@ def score_agent(agent_id: str, card_json: str, bft_round_json: str | None = None
         JSON-serialised A2A Agent Card.
     bft_round_json : str | None
         Optional JSON-serialised BFTConsensus object for consensus-weighted scoring.
+    session_id : str | None
+        Optional audit-trail session ID for integrity verification.
     """
     try:
         card = json.loads(card_json)
@@ -101,7 +103,8 @@ def score_agent(agent_id: str, card_json: str, bft_round_json: str | None = None
         except Exception as exc:
             return json.dumps({"error": f"Invalid BFT JSON: {exc}"})
 
-    score = openscore(agent_id, card, bft=bft)
+    audit = _trails.get(session_id) if session_id else None
+    score = openscore(agent_id, card, audit=audit, bft=bft)
     return json.dumps(
         {
             "agent_id": score.agent_id,
