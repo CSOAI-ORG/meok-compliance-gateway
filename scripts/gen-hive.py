@@ -601,6 +601,10 @@ DOMAIN_REGISTRY = [
         "revenue": "Stripe self-serve on compliance.meok.ai; x402 micro-charges on per-attestation lookups.",
         "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "4900",
         "stripe_live_ready": False, "vercel_deployed": False,
+        "faq": [
+            {"q": "How does MEOK pricing compare to Vanta/Drata/OneTrust?", "a": "10-20x undercut for enterprise tier ($50-200K/yr vs $120-500K/yr); 1000-10000x for low-volume agent-to-agent calls via x402 micro-settlement."},
+            {"q": "Is my organization prepared for the EU AI Act?", "a": "78% of EU enterprises are not yet prepared per the latest Commission impact assessment; phased enforcement runs through August 2027. MEOK ships turnkey Article 10/12/13/30 evidence stack."},
+        ],
     },
     {
         "domain": "csoai.org", "tier": "flagship",
@@ -618,6 +622,9 @@ DOMAIN_REGISTRY = [
         "revenue": "£1,499/mo Enterprise suite, £5,000 48h audit (per DOMAINS.md). Per-call x402 re-priced $1.50→$3.00 (high-trust audit, justified per [[meok-deep-audit-2026-06-08]] P1-2).",
         "pricing_tier": "enterprise_custom", "seat_price_usd": "200", "monthly_floor_usd": "50000",
         "stripe_live_ready": False, "vercel_deployed": False,
+        "faq": [
+            {"q": "How does MEOK pricing compare to Vanta/Drata/OneTrust?", "a": "10-20x undercut for enterprise tier ($50-200K/yr vs $120-500K/yr); 1000-10000x for low-volume agent-to-agent calls via x402 micro-settlement."},
+        ],
     },
     {
         "domain": "proofof.ai", "tier": "flagship",
@@ -767,9 +774,9 @@ DOMAIN_REGISTRY = [
         "entities": ["incident", "metric", "mitigation", "alert"],
         "relations": ["incident→metric", "mitigation→incident", "alert→metric"],
         "initial_agents": ["Safety Monitor", "Mitigation Planner", "Alert Router"],
-        "x402_enabled": True, "x402_price": "0.40", "free_tier": "1",
+        "x402_enabled": True, "x402_price": "5.00", "free_tier": "1",
         "isolated_overrides": [],
-        "revenue": "Landing page pointing at csoai.org suite.",
+        "revenue": "Landing page pointing at csoai.org suite. Per-call x402 re-priced $0.40→$5.00 (safety monitoring = high-value enterprise; [[meok-deep-audit-2026-06-08]] P1-2).",
         "pricing_tier": "team_29", "seat_price_usd": "29", "monthly_floor_usd": "2900",
         "stripe_live_ready": False, "vercel_deployed": False,
     },
@@ -789,6 +796,9 @@ DOMAIN_REGISTRY = [
         "revenue": "£399-£1,499/mo. Most credible of the *of.ai cluster for actual build (DOMAINS.md).",
         "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "1499",
         "stripe_live_ready": False, "vercel_deployed": False,
+        "faq": [
+            {"q": "How does MEOK pricing compare to Vanta/Drata/OneTrust?", "a": "10-20x undercut for enterprise tier ($50-200K/yr vs $120-500K/yr); 1000-10000x for low-volume agent-to-agent calls via x402 micro-settlement."},
+        ],
     },
     {
         "domain": "councilof.ai", "tier": "governance",
@@ -801,11 +811,14 @@ DOMAIN_REGISTRY = [
         "entities": ["deliberation", "quorum_certificate", "vote", "decision"],
         "relations": ["deliberation→vote", "decision→quorum_certificate", "deliberation→decision"],
         "initial_agents": ["Council Chair", "Vote Tally Keeper", "Quorum Auditor", "Adversarial Checker"],
-        "x402_enabled": True, "x402_price": "1.00", "free_tier": "0",
+        "x402_enabled": True, "x402_price": "5.00", "free_tier": "0",
         "isolated_overrides": [],
-        "revenue": "Audits every cross-hive Memoria commit; flip for $5-15k OR keep as governance infra.",
+        "revenue": "Audits every cross-hive Memoria commit; flip for $5-15k OR keep as governance infra. Per-call x402 re-priced $1→$5 (Watchdog = certification, new market category; [[meok-deep-audit-2026-06-08]] P1-2).",
         "pricing_tier": "business_49", "seat_price_usd": "49", "monthly_floor_usd": "4900",
         "stripe_live_ready": False, "vercel_deployed": False,
+        "faq": [
+            {"q": "How does MEOK pricing compare to Vanta/Drata/OneTrust?", "a": "10-20x undercut for enterprise tier ($50-200K/yr vs $120-500K/yr); 1000-10000x for low-volume agent-to-agent calls via x402 micro-settlement."},
+        ],
     },
     # UK construction cluster
     {

@@ -1,5 +1,10 @@
 # MEOK Compliance Gateway
 
+<!-- OpenSSF + hygiene badges (auto-inserted by add_openssf_badge.py) -->
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/CSOAI-ORG/meok-compliance-gateway/badge)](https://scorecard.dev/viewer/?uri=github.com/CSOAI-ORG/meok-compliance-gateway)
+[![License](https://img.shields.io/github/license/CSOAI-ORG/meok-compliance-gateway)](https://github.com/CSOAI-ORG/meok-compliance-gateway/blob/main/LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/CSOAI-ORG/meok-compliance-gateway)](https://github.com/CSOAI-ORG/meok-compliance-gateway/commits/main)
+
 Streamable-HTTP / containerized builds of MEOK AI Labs compliance MCP servers —
 the HTTP transport that cloud marketplaces (AWS Bedrock AgentCore, Google, Azure,
 Smithery) and x402 monetization require.
