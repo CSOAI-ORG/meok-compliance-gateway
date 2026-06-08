@@ -70,13 +70,16 @@ merge_repo() {
   echo
   echo "==> ${ORG}/${repo}"
 
-  # List open PRs with the "dependencies" label, paginated
+  # List open Dependabot PRs. Filter on author (app/dependabot) rather than
+  # the "dependencies" label — the label is only auto-applied to PRs opened
+  # AFTER the .github/dependabot.yml `labels:` block is merged. Pre-existing
+  # PRs (or orgs where the label isn't yet configured) come back label-less.
   local prs
   prs=$(gh pr list \
     --repo "${ORG}/${repo}" \
     --state open \
-    --label dependencies \
-    --json number,title,headRefName,isDraft \
+    --author app/dependabot \
+    --json number,title,headRefName,isDraft,author \
     --limit "${BATCH_SIZE}" 2>/dev/null) || {
       echo "  [skip] gh pr list failed for ${repo} (auth or repo missing?)"
       return 0
