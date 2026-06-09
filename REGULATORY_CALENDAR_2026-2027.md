@@ -1,8 +1,9 @@
 # MEOK Regulatory Calendar — P0 Deadlines (2026-2027)
 
-> **Source**: `sov3-mcp-master-audit-2026-06-08.md` + `sov3_state_of_empire.agent.final.md` + `sov3_july4_playbook.md`.
-> **Scope**: 4 P0 regulatory deadlines that drive MEOK engineering priorities.
+> **Source**: `sov3-mcp-master-audit-2026-06-08.md` + `sov3_mcp_master_audit.docx` Parts 1, 14, 15 + `sov3_state_of_empire.agent.final.md` + `sov3_july4_playbook.md`.
+> **Scope**: 4 P0 regulatory deadlines that drive MEOK engineering priorities. **17 total deadlines ranked by urgency** in the master audit (4 P0 + 5 P1 + 8 P2).
 > **Days to EU AI Act from 2026-06-08**: T-58.
+> **Audit Part 1 reference**: `sov3_mcp_master_audit.docx` Part 1 "Regulatory Timeline at a Glance" (17 deadlines in critical-path timeline) + Part 14 "Emerging Standards" (ETSI TS 104 008 detail) + Part 15 "MCP Build Priority Matrix" (P0/P1/P2 definitions).
 
 ## The 4 P0 deadlines
 
@@ -49,5 +50,58 @@ Total engineering: ~8 weeks across 4 MCPs. Tight but achievable with the July 4 
 - `clawd-workspace/SOV3_INTEL_DOSSIER_2026-06-08/sov3_state_of_empire.agent.final.md` — readiness score 63.7% → 91%
 - `clawd-workspace/SOV3_INTEL_DOSSIER_2026-06-08/sov3_mcp_master_audit.md` — 4 P0 build specs
 - `meok-compliance-gateway/MEOK_25_DAY_PLAYBOOK_2026-06-08.md` — daily calendar
+- `P0_BUILD_MCPS_2026-06-08.md` — the 4 P0-build MCPs (engineering briefs extracted from docx)
+- `ROADMAP_18_MONTH_2026-2027.md` — the 18-month quarterly plan (this calendar is the urgency engine)
+- `DISTRIBUTION_GAPS_2026-06-08.md` — the 6 channels these 4 P0s distribute through
 - [[sov3-mcp-master-audit-2026-06-08]] — the master audit memory
 - [[mcp-2026-07-28-stateless-spec]] — MCP 2026-07-28 spec migration affects how these 4 new MCPs will be built
+
+---
+
+## APPENDIX: All 17 deadlines ranked (from docx Part 1 critical-path timeline)
+
+The master audit identifies 17 distinct regulatory deadlines in the 18-month horizon. The 4 P0s above are the highest-priority engineering targets. The remaining 13 are P1 (5) or P2 (8) and ship in Q3 2026 → Q2 2027 per `P0_BUILD_MCPS_2026-06-08.md`.
+
+| # | Deadline | Days from 2026-06-08 | Priority | Confidence | MCP Coverage |
+|---:|---|---:|---|---|---|
+| 1 | **China AI Anthropomorphic** (effective) | 37 | **P0** | HIGH | None — must build (MCP-003) |
+| 2 | **EU AI Act Annex III high-risk** (full app) | 55 | **P0** | HIGH (Omnibus may extend) | Partial — must build classifier (MCP-001) |
+| 3 | EU CRA: Vulnerability/incident reporting | 95 | P1 | HIGH | Partial (CRA MCP exists) |
+| 4 | EU AI Act Article 50 (deepfake/watermark) | ~150 | P1 | HIGH | Partial (watermarking MCPs exist) |
+| 5 | EU CRA: Notified bodies operational | 186 | P2 | HIGH | Partial |
+| 6 | **Colorado SB 26-189** (ADMT) | 207 | **P0** | HIGH (signed into law) | None — must build (MCP-002) |
+| 7 | EU AI Act Article 6(1) Annex I (per Omnibus) | 420 | P1 | HIGH (Digital Omnibus) | None |
+| 8 | EU AI Act: pre-Aug-2026 systems compliant | ~420 | P1 | HIGH | Partial |
+| 9 | **ETSI TS 104 008 CABCA** (ongoing) | ongoing | **P0** | HIGH (enables 6-month lead) | None — must build (MCP-004) |
+| 10 | SEC AI enforcement | ongoing | P1 | HIGH (active) | None — must build (MCP-005) |
+| 11 | Australia mandatory guardrails (early 2026) | ongoing | P1 | MEDIUM (consultation phase) | None — must build (MCP-006) |
+| 12 | Japan HAIP reporting (Hiroshima) | ongoing | P2 | HIGH (voluntary) | None |
+| 13 | Automotive AI / UNECE type approval | ~420 | P1 | HIGH (multi-regulator) | None — must build (MCP-007) |
+| 14 | UK AI Bill (Private Member's Bill) | ~540 | P2 | MEDIUM (govt taking different approach) | Partial (UK AI Bill MCP) |
+| 15 | EU CRA FULL COMPLIANCE (CE marking) | 551 | P2 | HIGH | Partial |
+| 16 | EU AI Act deferred Annex III (Omnibus) | ~560 | P2 | MEDIUM | Partial |
+| 17 | EU: Commission guidelines on high-risk (extended) | ~240 | P1 | HIGH (extended) | Partial |
+
+## APPENDIX: 4 P0 MCPs cross-reference
+
+The 4 P0 deadlines map to 4 P0-build MCPs (per `P0_BUILD_MCPS_2026-06-08.md`):
+
+| P0 Deadline | P0 MCP | Build start | MVP target | Effort |
+|---|---|---|---|---|
+| China AI (Jul 15) | `china-ai-anthropomorphic-compliance-mcp` (MCP-003) | Now | 1 Jul 2026 | 3 weeks |
+| EU AI Act (Aug 2) | `eu-ai-act-high-risk-classifier-mcp` (MCP-001) | Now | 15 Jul 2026 | 4 weeks |
+| ETSI CABCA (ongoing) | `etsi-cabca-continuous-conformity-mcp` (MCP-004) | Now | 1 Aug 2026 | 4 weeks |
+| Colorado ADMT (Jan 1 2027) | `colorado-admt-compliance-mcp` (MCP-002) | 1 Jul 2026 | 1 Oct 2026 | 4 weeks |
+
+**Total engineering**: ~15 weeks (parallelizable to ~8 weeks with 2 engs).
+
+## APPENDIX: Why this calendar is the urgency engine for the launch
+
+The 4 P0 deadlines (37 / 55 / ongoing / 207 days) are the **demand spikes** that drive:
+- 5,000 free EU AI Act scanner completions (Q3 O3 target)
+- $50K MRR from MCP-driven subscriptions (Q3 O4 target)
+- 50,000 EU enterprises with high-risk AI use cases (TAM)
+- $35M or 7% global turnover penalty = existential risk (the pain)
+- Free EU AI Act risk scanner at meok.ai/scan = top-of-funnel (the wedge)
+
+The 5 manual monetization blockers (Stripe, Vercel, DNS, Resend, LinkedIn per memory) gate the **distribution** of these 4 P0s, not the **build** of them. The builds can ship to PyPI + the 6 distribution channels (per `DISTRIBUTION_GAPS_2026-06-08.md`) on Nick's existing token.
