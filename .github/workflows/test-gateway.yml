@@ -148,7 +148,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import os, sys, json
-          sys.path.insert('.', 0)
+          sys.path.insert(0, '.')
           from eth_account import Account
           from x402.client import x402ClientSync
           from x402.mechanisms.evm.exact.client import ExactEvmScheme
