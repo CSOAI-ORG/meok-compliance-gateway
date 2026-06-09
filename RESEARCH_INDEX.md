@@ -158,6 +158,23 @@ The v2 Kimi dossier (`/tmp/kimi_dossier_v2/`, 35 files, ~30K lines) was ingested
 
 **Total findings: 40 (20 v1 + 20 v2).** Findings 36-40 are internal-only per the rubric; findings 21-35 are external-safe.
 
+## Kimi bizmodel v2 reification (9 Jun 2026) — 6 synthesis docs
+
+The 6 Kimi bizmodel playbooks (`/tmp/kimi_dossier_v2/research/sov3_bizmodel_*.md`, ~4,000 lines total) were NOT covered by the v1+v2 reification (8 Jun). On 9 Jun, ingested all 6 source files into `docs/seo-global-report/research/sov3_bizmodel/` and wrote 6 keystone-level synthesis docs that map each playbook to specific SOV3 actions.
+
+| # | Synthesis doc | Maps to stream | Source playbook | Lines |
+|--:|---|---|---|--:|
+| 1 | `SOV3_BIZMODEL_REGULATORY_SYNTHESIS.md` | Stream 5 (EU AI Act + 4 P0 deadlines) | `sov3_bizmodel_regulatory.md` (691 lines) | 145 |
+| 2 | `SOV3_BIZMODEL_CERTIFICATION_SYNTHESIS.md` | Stream 3 (Watchdog Cert, $500K Y1) | `sov3_bizmodel_certification.md` (803 lines) | 138 |
+| 3 | `SOV3_BIZMODEL_MARKETPLACE_SYNTHESIS.md` | Stream 2 (MCP App Store) | `sov3_bizmodel_marketplace.md` (652 lines) | 133 |
+| 4 | `SOV3_BIZMODEL_OSS_SYNTHESIS.md` | Cross-cutting (open-core thesis) | `sov3_bizmodel_oss.md` (752 lines) | 130 |
+| 5 | `SOV3_BIZMODEL_FREEMIUM_SYNTHESIS.md` | Stream 1 + 2 (conversion funnel) | `sov3_bizmodel_freemium.md` (743 lines) | 125 |
+| 6 | `SOV3_BIZMODEL_LANDEXPAND_SYNTHESIS.md` | Stream 4 (Enterprise Platform) | `sov3_bizmodel_landexpand.md` (547 lines) | 121 |
+
+**Each synthesis doc includes**: (a) the 7 benchmark patterns table, (b) 3-4 SOV3-specific actions, (c) 5 "do NOT do" rules, (d) a 4-year revenue projection, (e) 6-10 cross-references to other keystone docs. **All 6 are rubric-pass per `RUBRIC_EXTERNAL_COMMS.md` § 8** (factual comparative, no war language).
+
+**Total: 6 new canonical docs, ~790 lines, ~4,000 lines of source playbook reified. Plus 6 source files (232KB) preserved in `docs/seo-global-report/research/sov3_bizmodel/` for re-verification.**
+
 ## What NOT to do with this research
 
 - **Do not** quote "10x undercut" without the specific comparison (PRICING.md has the honest 2-20x framing).
