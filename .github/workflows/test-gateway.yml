@@ -122,9 +122,10 @@ jobs:
       - name: Install gateway runtime + x402[evm] + eth_account
         # The offline v1 sign step uses ExactEvmScheme, which needs the
         # x402[evm] extra (pulls in web3). Base x402 alone isn't enough.
+        # hypothesis is required by tests/test_x402_properties.py (fuzz).
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-gateway.txt 'x402[evm]' eth-account pytest
+          pip install -r requirements-gateway.txt 'x402[evm]' eth-account pytest hypothesis
 
       - name: Boot + challenge roundtrip
         # The smoke imports `server` (the keystone module) and drives the
