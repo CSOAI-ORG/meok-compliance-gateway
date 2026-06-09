@@ -108,26 +108,28 @@
 
 ## Kimi Dossier v2 — reified canonical docs (8 Jun 2026)
 
-The v2 Kimi dossier (`/tmp/kimi_dossier_v2/`, 35 files, ~30K lines) was ingested in three waves (3dad2ee, c00d002, d9ee13f, 969bce2) into the following 11 canonical docs. **All 11 are rubric-pass per `RUBRIC_EXTERNAL_COMMS.md` § 8** (banned-phrase audit returns 0 body-copy hits; hits appear only in explicit "do-NOT-do" meta-sections).
+The v2 Kimi dossier (`/tmp/kimi_dossier_v2/`, 35 files, ~30K lines) was ingested in three waves (3dad2ee, c00d002, d9ee13f, 969bce2) into the following 16 canonical docs. **All 16 are rubric-pass per `RUBRIC_EXTERNAL_COMMS.md` § 8** (banned-phrase audit returns 0 body-copy hits; hits appear only in explicit "do-NOT-do" meta-sections).
 
 | # | Doc | Lines | Source file | What it is |
 |--:|---|---:|---|---|
-| 1 | `COMPARE_MATRIX_15_COMPETITORS.md` | 193 | `deepdive_feature_matrix.md` | 15-competitor feature matrix, neutral positioning |
-| 2 | `EU_AI_ACT_FREE_SCANNER_SPEC.md` | 128 | `deepdive_feature_matrix.md` § EU AI Act | 5-question risk scanner, drives Business-tier funnel |
-| 3 | `28_DAY_BLOG_CALENDAR.md` | 179 | `sov3_july4_playbook.md` § Phase 1-3 | Per-day content slots, Jul 4 28-post blitz |
-| 4 | `ONE_TRUST_ESCAPE_TCO_CALC.md` | 195 | `sov3_business_model.agent.final.md` § pricing | 7-input TCO calculator, 70-95% savings vs OneTrust |
-| 5 | `WATCHDOG_CERTIFICATION_PLATFORM_SPEC.md` | 181 | `sov3_business_model.agent.final.md` § Watchdog stream | 3-tier cert, $8.9M Year-2 potential |
-| 6 | `SHADOW_AI_DETECTION_MCP_SPEC.md` | 152 | `deepdive_feature_matrix.md` + `sov3_state_of_empire.agent.final.md` | 6 MCP tools, 4 detection sources, ~$2.5M Year-1 ARR |
-| 7 | `SOV3_UNIQUE_CAPABILITIES_MATRIX.md` | 236 | `sov3_tech_blueprint.agent.final.md` | 10 SOV3-exclusive capabilities, 5 critical competitor weaknesses |
-| 8 | `SOV3_FINANCIAL_MODEL_2026-2028.md` | 418 | `sov3_business_model.agent.final.md` | 8-quarter P&L ($10K → $5M MRR), 6 revenue streams, $480M-$2.25B exit |
+| 1 | `KEY_DIFFERENTIATORS.md` | 245 | `deepdive_feature_matrix.md` + audit synthesis | 8 differentiators vs 15 GRC competitors with citations |
+| 2 | `COMPARE_MATRIX_15_COMPETITORS.md` | 193 | `deepdive_feature_matrix.md` | 15-competitor feature matrix, neutral positioning |
+| 3 | `EU_AI_ACT_DEADLINE_INTEL.md` | 200 | `sov3_intel_dim05.md` | Aug 2 2026 deadline pack, 9 requirements, 4-tier penalties, 6-week launch sequence |
+| 4 | `EU_AI_ACT_FREE_SCANNER_SPEC.md` | 128 | `deepdive_feature_matrix.md` § EU AI Act | 5-question risk scanner, drives Business-tier funnel |
+| 5 | `CVE_INTEL_BRIEF_2026-06-08.md` | 220 | `sov3_intel_dim04.md` | 3-CVE publication pack (CrowdStrike / Azure / Claude Code), 5-channel pattern |
+| 6 | `MCP_MARKETPLACE_STRATEGY.md` | 200 | `deepdive_mcp_inventory.md` | 6-marketplace rollout, 7-step submission pattern, 10 first-mover positions |
+| 7 | `SOV3_FINANCIAL_MODEL_2026-2028.md` | 418 | `sov3_business_model.agent.final.md` | 8-quarter P&L ($10K → $5M MRR), 6 revenue streams, $480M-$2.25B exit |
+| 8 | `SOV3_UNIQUE_CAPABILITIES_MATRIX.md` | 236 | `sov3_tech_blueprint.agent.final.md` | 10 SOV3-exclusive capabilities, 5 critical competitor weaknesses |
 | 9 | `SOV3_12_DIM_SYNTHESIS.md` | 337 | `sov3_intel_dim01-12.md` (12-dim research) | 15 competitors × 12 dimensions, 5 deep-dive playbooks, 7 JTBDs |
 | 10 | `MEOK_API_STRATEGY.md` | 179 | `deepdive_api_analysis.md` | 10 API gaps, 3-phase API roadmap, multi-protocol architecture |
-| 11 | `MEOK_UX_STRATEGY.md` | 210 | `deepdive_uiux_analysis.md` | 10-platform UX scorecard, 4 SOV3 design principles, 5 wireframe specs (Wiz-simplicity meets Credo AI intelligence) |
-| 12 | `EU_AI_ACT_DEADLINE_INTEL.md` | 200 | `sov3_intel_dim05.md` | Aug 2 2026 deadline pack, 9 requirements, 4-tier penalties, 6-week launch sequence |
-| 13 | `CVE_INTEL_BRIEF_2026-06-08.md` | 220 | `sov3_intel_dim04.md` | 3-CVE publication pack (CrowdStrike / Azure / Claude Code), 5-channel pattern |
-| 14 | `MCP_MARKETPLACE_STRATEGY.md` | 200 | `deepdive_mcp_inventory.md` | 6-marketplace rollout, 7-step submission pattern, 10 first-mover positions |
+| 11 | `MEOK_UX_STRATEGY.md` | 210 | `deepdive_uiux_analysis.md` | 10-platform UX scorecard, 4 SOV3 design principles, 5 wireframe specs |
+| 12 | `SHADOW_AI_DETECTION_MCP_SPEC.md` | 152 | `deepdive_feature_matrix.md` + `sov3_state_of_empire.agent.final.md` | 6 MCP tools, 4 detection sources, ~$2.5M Year-1 ARR |
+| 13 | `WATCHDOG_CERTIFICATION_PLATFORM_SPEC.md` | 181 | `sov3_business_model.agent.final.md` § Watchdog stream | 3-tier cert, $8.9M Year-2 potential |
+| 14 | `ONE_TRUST_ESCAPE_TCO_CALC.md` | 195 | `sov3_business_model.agent.final.md` § pricing | 7-input TCO calculator, 70-95% savings vs OneTrust |
+| 15 | `28_DAY_BLOG_CALENDAR.md` | 179 | `sov3_july4_playbook.md` § Phase 1-3 | Per-day content slots, Jul 4 28-post blitz |
+| 16 | `RESEARCH_INDEX.md` | — | this file | The 40-finding synthesis (20 v1 + 20 v2 dossier), canonical source-of-truth index |
 
-**Total: 14 canonical docs, ~3,000 lines, ~12,000+ lines of source dossier reified.** The full wave-1+2+3 commit chain on `claude/review-changes-mkbcvckpl5ix3r03-MkKCu`: 3dad2ee → c00d002 → d9ee13f.
+**Total: 16 canonical docs, ~3,500 lines, ~12,000+ lines of source dossier reified.** The full wave-1+2+3 commit chain on `claude/review-changes-mkbcvckpl5ix3r03-MkKCu`: 3dad2ee → c00d002 → d9ee13f.
 
 ### 10 new high-confidence findings (v2 dossier, 8 Jun 2026)
 
