@@ -435,13 +435,17 @@ def gen_x402_bazaar_discovery() -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--out", type=Path, default=REPO_ROOT / "dist" / "keystone-listing",
-                        help="Output directory (default: dist/keystone-listing)")
+    parser.add_argument("--out", type=Path, default=None,
+                        help="Output directory (default: dist/keystone-listing). When set, "
+                        "--check diffs against this path instead of the canonical REPO_ROOT/dist/.")
     parser.add_argument("--check", action="store_true",
                         help="Regenerate into a temp dir and diff against --out; exit 1 if any "
                         "file would change. Use in CI to catch 'added a tool, forgot to update "
                         "the listing' before the marketplace goes stale.")
     args = parser.parse_args()
+    args._out_override = args.out
+    if args.out is None:
+        args.out = REPO_ROOT / "dist" / "keystone-listing"
     if args.check:
         import tempfile
         with tempfile.TemporaryDirectory(prefix="meok-keystone-check-") as tmp:
@@ -460,7 +464,12 @@ def main() -> int:
             # OK and let the contributor regenerate + commit. We only
             # fail when the listing exists but is stale.
             import filecmp
-            committed = REPO_ROOT / "dist" / "keystone-listing"
+            # If --out was explicitly given, the test/contributor is
+            # pointing --check at a specific reference (e.g. a fake
+            # committed-listing dir, or a worktree's dist/). Otherwise
+            # fall back to the canonical REPO_ROOT/dist/keystone-listing.
+            committed = args._out_override if args._out_override is not None \
+                else REPO_ROOT / "dist" / "keystone-listing"
             if not committed.exists():
                 print("OK: dist/keystone-listing/ not present (fresh checkout). "
                       "Run scripts/gen-keystone-payload.py to generate it.")
@@ -494,7 +503,14 @@ def main() -> int:
 
     print(f"Wrote 5 keystone-listing files to {args.out}/")
     for p in sorted(args.out.iterdir()):
-        print(f"  {p.relative_to(REPO_ROOT)} ({p.stat().st_size:,} bytes)")
+        # When --out points outside the repo (e.g. a test's tmp_path),
+        # relative_to(REPO_ROOT) raises ValueError. Fall back to the bare
+        # filename so the generator stays usable from any cwd.
+        try:
+            display = p.relative_to(REPO_ROOT)
+        except ValueError:
+            display = p.name
+        print(f"  {display} ({p.stat().st_size:,} bytes)")
     return 0
 
 
