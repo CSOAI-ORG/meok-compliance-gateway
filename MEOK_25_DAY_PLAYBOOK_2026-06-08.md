@@ -19,7 +19,7 @@
 | Day | Date | Theme | Actions | Blockers |
 |---|---|---|---|---|
 | -26 | Mon Jun 8 | **Infrastructure lockdown** | Deploy meok.ai v2.0 with countdown; 26/26 domains resolve; EU AI Act MCP: 410 articles + calculator; HMAC-SHA256 on 25 MCPs; BFT consensus; x402 monetization; 4-cloud Streamable-HTTP healthy; 10K-concurrency load test | G1, G2, G4, G5 |
-| -25 | Tue Jun 9 | **Content arsenal** | 3 blog posts queued (EU AI Act 54-day; insider sales; 83% problem); OneTrust migration landing page; 3-min product demo video | G4 |
+| -25 | Tue Jun 9 | **Content pipeline** | 3 blog posts queued (EU AI Act 54-day; insider sales; 83% problem); OneTrust migration landing page; 3-min product demo video | G4 |
 | -24 | Wed Jun 10 | **CVE strike (Palo Alto CVE-2026-0257)** | 5-channel CVE publication (blog, X, LinkedIn, HN, Reddit); email blast; monitor + reply within 15min | none |
 | -23 | Thu Jun 11 | **MCP governance vacuum claim** | "35K MCP servers, zero governance" content; cite https://modelcontextprotocol.io registry numbers | none |
 | -22 | Fri Jun 12 | **EU AI Act deep-dive** | 1,800-word technical article on Article 6/10/12/13/30; HN submission; LinkedIn version | G4 |
