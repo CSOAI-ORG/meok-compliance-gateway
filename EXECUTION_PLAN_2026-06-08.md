@@ -416,14 +416,14 @@ gates. **No irreversible action without confirmation.** No push without Nick go.
 - [ ] 5 modified tracked files read, classified, and prepared for a single cleanup commit
 - [ ] agentaudit/ diff'd against feat/agentaudit-server, moved to worktree (or discarded)
 - [ ] Pre-push verification report of the 7 unpushed commits
-- [ ] P1-A (10-20x undercut FAQ) added to gen-geo.py
-- [ ] P1-C (EU AI Act 78% stat) added to meok.ai FAQ
-- [ ] P1-D verified (pricing_tier wired)
-- [ ] P2-A (4 prices re-priced) added to gen-hive.py
-- [ ] P2-B (Certification query) added to 3 governance hives
-- [ ] P2-D (keystone GEO query) added to gen-geo.py
-- [ ] P3-A stub (MCP Security Cert Standard v0.1 RFC TOC)
-- [ ] P3-C (add_openssf_badge.py run on keystone)
+- [x] P1-A (10-20x undercut FAQ) added to gen-geo.py — DONE 8 Jun (commit b662644/a989049)
+- [x] P1-C (EU AI Act 78% stat) added to meok.ai FAQ — DONE 8 Jun (commit b662644/a989049)
+- [x] P1-D verified (pricing_tier wired) — DONE 8 Jun (verified in scripts/gen-geo.py line search)
+- [x] P2-A (4 prices re-priced) added to gen-hive.py — DONE 8 Jun (proofof $10, councilof $5, safetyof $5, csoai $3)
+- [x] P2-B (Certification query) added to 3 governance hives — DONE 8 Jun (councilof, biasdetectionof, transparencyof, all live in 28-hive regen)
+- [x] P2-D (keystone GEO query) added to gen-geo.py — DONE 8 Jun (verified live in /Users/nicholas/hive-staging/meok-compliance-gateway-hive/llms.txt)
+- [x] P3-A stub (MCP Security Cert Standard v0.1 RFC TOC) — DONE 8 Jun (MCP_SECURITY_CERTIFICATION_STANDARD_v0.1_RFC.md, 206 lines, committed 2e9425e)
+- [x] P3-C (add_openssf_badge.py run on keystone) — DONE 8 Jun (badge line in README.md + script in scripts/add_openssf_badge.py)
 
 **Out of session scope (multi-day / Nick-gated):**
 - G1-G5 above
