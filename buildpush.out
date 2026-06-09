@@ -1,0 +1,7 @@
+>>> dora-compliance-mcp -> ghcr.io/csoai-org/dora-mcp
+latest: digest: sha256:7067679a67385b73fc963455dcfb39b329ce86cb919df8589398a956be8d8604 size: 856
+>>> nis2-compliance-mcp -> ghcr.io/csoai-org/nis2-mcp
+latest: digest: sha256:9b558c86f77ff50debb2fe5de39a3b2e6b038f70416d9db6c39b80b543af3495 size: 856
+>>> cra-compliance-mcp -> ghcr.io/csoai-org/cra-mcp
+latest: digest: sha256:e6426461ee669b74962a882871a953628b7c63a9cd239959fed32fadcd0dc7ea size: 856
+DONE — 4 flagship images on ghcr.io/csoai-org/
