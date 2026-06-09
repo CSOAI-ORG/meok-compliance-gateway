@@ -33,8 +33,21 @@ def tmp_secrets_dir(monkeypatch, tmp_path):
     return mod, tmp_path
 
 
-def test_set_and_get_secret(tmp_secrets_dir):
+def test_set_and_get_secret(tmp_secrets_dir, monkeypatch):
     mod, tmp_path = tmp_secrets_dir
+    # Force the file path: pretend keyring is unavailable so the file-fallback
+    # branch runs (otherwise on dev machines with keyring, location == "keyring"
+    # and the file-mode assertion below is vacuous).
+    import builtins
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "keyring":
+            raise ImportError("simulated no keyring")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+
     location = mod.set_secret("test-key", "secret-value-123")
     assert "test-key.key" in location
     assert mod.get_secret("test-key") == "secret-value-123"

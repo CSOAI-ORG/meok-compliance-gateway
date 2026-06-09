@@ -564,7 +564,7 @@ def gen_llms_txt(d: dict) -> str:
 
 ## Canonical research (dossier reified 2026-06-08)
 
-The following 15 docs back the differentiators and FAQ on this landing page. Sourced from `/tmp/kimi_dossier_v2/` (Kimi 8 Jun 2026) and reified into the keystone. All rubric-pass per `RUBRIC_EXTERNAL_COMMS.md` § 8. Full URLs: `{CSOAI_ORG_URL}/meok-compliance-gateway/blob/main/<filename>`
+The following 16 docs back the differentiators and FAQ on this landing page. Sourced from `/tmp/kimi_dossier_v2/` (Kimi 8 Jun 2026) and reified into the keystone. All rubric-pass per `RUBRIC_EXTERNAL_COMMS.md` § 8. Full URLs: `{CSOAI_ORG_URL}/meok-compliance-gateway/blob/main/<filename>`
 
 {chr(10).join(f"- **{fname}** — {desc}" for fname, desc in CANONICAL_RESEARCH)}
 """
