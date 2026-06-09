@@ -37,7 +37,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r agentaudit/requirements.txt
           pip install -e ./agentaudit
-          pip install 'agentaudit[dev]'
+          # x402 is declared as an optional extra in pyproject.toml because
+          # only the paywalled tools need it; the tests that exercise the
+          # paywall import it directly (see agentaudit/tests/test_x402.py
+          # docstring: `pip install x402 && python tests/test_x402.py`).
+          # Install it alongside [dev] so the CI pytest job can import it.
+          pip install 'agentaudit[x402,dev]'
 
       - name: Lint (compile-only)
         run: |
@@ -72,7 +77,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r agentaudit/requirements.txt
           pip install -e ./agentaudit
-          pip install 'agentaudit[fuzz]'
+          # Same x402 extra as the test job — fuzz/test_x402_properties.py
+          # imports `from x402 import ResourceInfo`.
+          pip install 'agentaudit[x402,fuzz]'
 
       - name: Fuzz
         env:
