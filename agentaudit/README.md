@@ -1,21 +1,27 @@
 # AgentAudit — A2A Compliance & Audit Proxy
 
-> **Status:** Alpha — interfaces may change until v1.0.  
-> **Empire Alignment:** OpenMoE-BFT Empire Layer 3 (OpenScore Safety Experts), Layer 8 (Compliance Gateway), Layer 9 (Audit & Receipts), Layer 10 (x402 Paywall), Layer 11 (A2A + MCP Interop).
+> **Status:** Alpha — interfaces may change until v1.0.
 
 AgentAudit is the regulatory-compliance conscience layer for AI-agent protocols. It maps the **EU AI Act**, **DORA**, **NIS2**, and **CRA** onto A2A Agent Card fields, maintains **tamper-evident audit trails** with **Signet Ed25519 signing**, scores agents via the **OpenScore 14-expert algorithm**, and can shadow-scan estates for unregistered agents.
 
 ## Quick Start
 
 ```bash
-# 1. Install
-pip install -r requirements.txt
+# 1. Install from PyPI
+pip install agentaudit            # add [x402] for the paywalled tools: pip install 'agentaudit[x402]'
 
 # 2. Run the MCP server (stdio)
-python -m agentaudit.server
+agentaudit-server                 # or: python -m agentaudit.server
+```
 
-# 3. Or run the streamable-HTTP gateway
-python http_server.py        # listens on 0.0.0.0:8000
+The streamable-HTTP gateway (`http_server.py`, listens on `0.0.0.0:8000`) ships
+in the repo rather than the wheel — run it from a clone:
+
+```bash
+git clone https://github.com/CSOAI-ORG/meok-compliance-gateway
+cd meok-compliance-gateway/agentaudit
+pip install -e '.[x402,dev]'      # local/dev install
+python http_server.py
 ```
 
 ## OpenScore Safety Experts (14)
