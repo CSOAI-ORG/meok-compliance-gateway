@@ -10,6 +10,24 @@
 > "oversight plane". No throne/empire/war rhetoric in public artifacts (per
 > [[meok-deep-audit-2026-06-08]] + `RUBRIC_EXTERNAL_COMMS.md`).
 
+## 0. Prior art & naming (verified 2026-06-09 against GitHub + local)
+
+A duplication sweep (GitHub public+private + local MacBook) found **none of the
+crown / sigil / HORUS / Ed25519-root work is built anywhere** — 0 hits in all 475
+public CSOAI-ORG repos, 0 private repos exist. But two names here **pre-date this
+spec** in Nick's local docs and must be reconciled:
+
+- **"DEFONOS" is already used** for (a) `mjx_defonos.py`, a JAX/MuJoCo swarm-physics
+  kernel (unrelated), and (b) a **B2B/enterprise brand segment** ("DEFONOS / CSOAI",
+  the Archimedes auditor command-center UI) in `MEOK_OS_PARADIGM_SHIFT.md`. Meaning
+  (b) is compatible — DEFONOS = the enterprise face of the federation/realm — so we
+  keep DEFONOS for the realm, aware it also tags an unrelated physics file.
+- **A Sovereign Token already exists**: `Bearer MEOK-SOV-*`, the SSO token ("One
+  Account, One DNA", `MEOK_EMPIRE_EXPANSION.md`). **The sigil does NOT replace it.**
+  Different layers: the **token authenticates a user/session**; the **sigil
+  authenticates a message's origin + chain to the crown.** The sigil layer rides on
+  top of the existing MEOK-SOV auth — build them as complementary, not competing.
+
 ## 1. One-liner
 
 **DEFONOS** is the realm — the federation of all `.ai` hives joined over one A2A
