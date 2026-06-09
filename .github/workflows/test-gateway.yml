@@ -19,31 +19,38 @@ jobs:
           python-version: "3.11"
 
       - name: Install gateway runtime
+        # requirements-gateway.txt pulls in `mcp==1.27.2` (exact pin per
+        # AGENTS.md), `uvicorn`, `starlette`, etc. No more hand-rolled
+        # /tmp/stub/server.py — the repo now ships a real server.py with
+        # 4 free + 2 paywalled tools, and the smoke job tests that file
+        # directly via tests/test_keystone_server.py.
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-gateway.txt
-          # Install a stub `server` module so http_server.py imports cleanly in CI.
-          # Production builds get the real `server` from the flagship PKG via Docker.
 
-      - name: Lint http_server.py
+      - name: Lint the keystone
+        # py_compile catches syntax errors at push time. http_server.py is
+        # the production entrypoint; server.py is the keystone's tool
+        # surface that http_server.py imports. The substrate modules
+        # meok_x402 + meok_rate_limit must also parse.
         run: |
-          python -m py_compile http_server.py
-          # Compile-only check. The previous `test.yml` used `py_compile server.py`,
-          # which is N/A here — the real entrypoint is http_server.py.
+          python -m py_compile http_server.py server.py meok_x402.py meok_rate_limit.py
+          echo "py_compile: all four files OK"
 
-      - name: Import smoke
+      - name: Run the keystone server tests
+        # tests/test_keystone_server.py imports `server` directly (via
+        # the fresh_server fixture) and asserts on the 6 registered tools,
+        # free-tier rate limit, audit anchor, and payer_hint shapes. 28
+        # tests; no stub required.
+        env:
+          # MEOK_ATTESTATION_KEY is read from env in dev mode (with a
+          # warning per CRITICAL_FIXES_2026-06-08 #3). A 64-hex-char
+          # value is a stable 32-byte HMAC key — same one sign_receipt
+          # and verify_receipt use, so the round-trip in
+          # test_verify_receipt_passthrough_when_disabled works.
+          MEOK_ATTESTATION_KEY: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
         run: |
-          # Stub the imported `server` module so the import in http_server.py succeeds.
-          mkdir -p /tmp/stub && cat > /tmp/stub/server.py <<'PY'
-          class _MCP:
-              settings = type("S", (), {"host": "", "port": 0, "transport_security": None})()
-              def custom_route(self, *a, **k):
-                  def deco(fn): return fn
-                  return deco
-              def run(self, *a, **k): pass
-          mcp = _MCP()
-          PY
-          PYTHONPATH=/tmp/stub python -c "import importlib.util, sys; spec=importlib.util.spec_from_file_location('http_server','http_server.py'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print('import OK')"
+          pytest tests/test_keystone_server.py -v
 
       - name: x402 paid-tool helper tests
         run: |
@@ -73,6 +80,13 @@ jobs:
         # Bump deliberately when the upstream release is tested against the gateway.
         # Without the pin, a new flagship release can break the gateway's import
         # chain (mcp SDK / FastMCP API surface) without warning.
+        #
+        # Note: the repo's own `server.py` (the keystone, 4 free + 2 paywalled
+        # tools) takes precedence over the installed flagship's `server` module
+        # by CWD-import resolution. The PKG install is therefore a SANITY CHECK
+        # that the keystone's mcp API surface is compatible with the flagship's
+        # setuptools convention (entry points, package metadata). The actual
+        # boot below drives the keystone's server, which is what we ship.
         run: |
           python -m pip install --upgrade pip
           pip install -c constraints.txt -r requirements-gateway.txt eu-ai-act-compliance-mcp==1.8.1

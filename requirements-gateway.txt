@@ -8,6 +8,11 @@
 #
 # 2026-07-28 spec migration is an `mcp` SDK upgrade (+ flagship code), tracked
 # in LISTING.md — bump the pin below deliberately when the SDK ships support.
+#
+# `pytest` is in the runtime because the smoke job runs the keystone server
+# tests as a guard against `server.py` regressions. Without it the workflow
+# can only assert `import OK` — which we already proved doesn't catch
+# missing tools, missing env, or broken decorators.
 mcp==1.27.2
 uvicorn[standard]==0.49.0
 # meok_crown.py — Ed25519 root-of-trust + sigil seal (the asymmetric attestation
