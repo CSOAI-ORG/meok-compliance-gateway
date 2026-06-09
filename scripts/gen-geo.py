@@ -45,7 +45,7 @@ DOMAIN_REGISTRY = _gen_hive.DOMAIN_REGISTRY
 HIVE_GENESIS = "2026-06-07"
 CSOAI_ORG_URL = "https://github.com/CSOAI-ORG"
 
-# 7 key differentiators (per [[meok-deep-audit-2026-06-08]] P0-2 + KEY_DIFFERENTIATORS.md)
+# 8 key differentiators (per [[meok-deep-audit-2026-06-08]] P0-2 + KEY_DIFFERENTIATORS.md + SOV3_UNIQUE_CAPABILITIES_MATRIX.md)
 # Factual, comparative, citation-ready. Per [[RUBRIC_EXTERNAL_COMMS.md]] — no war language.
 # Updated 2026-06-08 with #8 from the 76-server MCP master audit.
 KEY_DIFFERENTIATORS = [
