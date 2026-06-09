@@ -70,6 +70,17 @@ DESCRIPTION_TEMPLATE = (
 
 # Per-repo metadata. Pulled from regen-mcp-reg.py's FLAGSHIP_REPOS for parity;
 # extended with the per-repo capability 1-liner.
+
+# Repos that publish OCI / streamable-HTTP artifacts at ghcr.io/csoai-org/*.
+# These get the `type: http` Smithery pattern; everything else gets stdio.
+STREAMABLE_HTTP_REPOS = {
+    "meok-compliance-gateway",
+    "eu-ai-act-compliance-mcp",
+    "meok-governance-engine-mcp",
+    "meok-watermark-attest-mcp",
+    "meok-mcp-injection-scan-mcp",
+    "meok-cra-annex-iv-classifier-mcp",
+}
 REPO_METADATA = {
     "eu-ai-act-compliance-mcp": {
         "display_name": "EU AI Act Compliance",
@@ -198,15 +209,54 @@ def _fleet_size() -> int:
 def gen_smithery_yaml(repo: str) -> str:
     """Generate a Smithery-compliant smithery.yaml for a repo.
 
-    Most CSOAI-ORG servers are PyPI-installable Python packages that expose
-    an MCP server over stdio. The standard install is `uvx <package>` or
-    `pipx run <package>`. We generate that pattern.
+    Two patterns:
+    - **HTTP / streamable-HTTP** (for the keystone + OCI-published flagships):
+      Smithery runs the container with HTTP transport. Matches the existing
+      keystone pattern at `smithery.yaml`.
+    - **stdio** (for PyPI-installable flagships that don't yet ship OCI):
+      Smithery runs the package via `uvx` / `pipx` with stdio transport.
+
+    The repo is checked against `STREAMABLE_HTTP_REPOS` to pick the right
+    pattern. The keystone + any repo with a published `ghcr.io/csoai-org/*`
+    OCI image uses HTTP.
     """
     meta = _meta_for(repo)
     pkg = repo.replace("-mcp", "").replace("-", "_")
+    is_http = repo in STREAMABLE_HTTP_REPOS
+    if is_http:
+        return f"""# smithery.yaml — Smithery (https://smithery.ai) submission payload
+# Repo: CSOAI-ORG/{repo}
+# Generated: {date.today().isoformat()}
+# Transport: streamable-HTTP (OCI container at ghcr.io/csoai-org/{pkg})
+# See: DISTRIBUTION_GAPS_2026-06-08.md for the channel strategy
+runtime: container
+startCommand:
+  type: http
+  transport: streamable-http
+  port: 8081
+  path: /mcp
+  health: /healthz
+  configSchema:
+    type: object
+    properties:
+      apiKey:
+        type: string
+        description: "MEOK API key (optional; required for x402 paywalled tools)"
+        default: ""
+      x402PayTo:
+        type: string
+        description: "USDC address for x402 micropayments"
+        default: ""
+    additionalProperties: false
+build:
+  dockerfile: Dockerfile
+  dockerBuildArgs:
+    PKG: {pkg}
+"""
     return f"""# smithery.yaml — Smithery (https://smithery.ai) submission payload
 # Repo: CSOAI-ORG/{repo}
 # Generated: {date.today().isoformat()}
+# Transport: stdio (PyPI package, installed via uvx)
 # See: DISTRIBUTION_GAPS_2026-06-08.md for the channel strategy
 startCommand:
   type: stdio
