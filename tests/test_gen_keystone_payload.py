@@ -1,0 +1,125 @@
+"""Tests for scripts/gen-keystone-payload.py — keeps the marketplace listings
+in sync with the keystone's tool surface. If the listings fall out of sync,
+the marketplace advertises a tool surface that doesn't match what the
+keystone actually serves — agents reading the Glama/Smithery listing see
+sign_receipt/verify_receipt at $0.05, hit the gateway, and find something
+else. CI runs `python3 scripts/gen-keystone-payload.py --check` and fails
+if the diff is non-empty.
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _run(*args, env=None) -> subprocess.CompletedProcess:
+    """Run scripts/gen-keystone-payload.py with the given args, in the
+    repo root, with the given env (or default to the test env)."""
+    return subprocess.run(
+        [sys.executable, "scripts/gen-keystone-payload.py", *args],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        env={**os.environ, **(env or {})},
+    )
+
+
+def test_check_passes_when_listings_are_fresh():
+    """The committed listings are regenerated from server.py in CI; if
+    the regen matches, --check exits 0. Pre-condition: the test runs
+    after a fresh `gen-keystone-payload.py`, so the listings are in sync."""
+    cp = _run("--check")
+    assert cp.returncode == 0, f"--check failed: stdout={cp.stdout!r} stderr={cp.stderr!r}"
+    assert "OK" in cp.stdout, f"unexpected stdout: {cp.stdout!r}"
+
+
+def test_check_detects_stale_glama_json(tmp_path, monkeypatch):
+    """If a tool is added to the keystone's TOOLS list in
+    gen-keystone-payload.py but the generator is not re-run, --check
+    should detect the staleness and exit non-zero with a helpful message."""
+    # Modify the committed glama.json to claim an extra tool
+    listing = REPO_ROOT / "dist" / "keystone-listing" / "glama.json"
+    payload = json.loads(listing.read_text())
+    payload["tools"].append({
+        "name": "ghost_tool",
+        "description": "Does not exist on the real keystone",
+        "paywall": False,
+        "price": None,
+    })
+    listing.write_text(json.dumps(payload, indent=2) + "\n")
+    try:
+        cp = _run("--check")
+        assert cp.returncode != 0, f"--check should have detected the stale listing: stdout={cp.stdout!r}"
+        assert "out of date" in cp.stdout or "stale" in cp.stdout.lower() or "regenerate" in cp.stdout.lower(), \
+            f"unhelpful error message: {cp.stdout!r}"
+        assert "glama.json" in cp.stdout, f"should name the differing file: {cp.stdout!r}"
+    finally:
+        # Restore the committed listing
+        subprocess.run(
+            [sys.executable, "scripts/gen-keystone-payload.py"],
+            cwd=REPO_ROOT,
+            check=True,
+        )
+
+
+def test_check_fails_cleanly_when_dist_missing(tmp_path, monkeypatch):
+    """If dist/keystone-listing/ doesn't exist at all, --check should
+    fail with a clear message rather than crashing."""
+    # Move the listing aside
+    listing_dir = REPO_ROOT / "dist" / "keystone-listing"
+    backup = tmp_path / "keystone-listing-backup"
+    if listing_dir.exists():
+        import shutil
+        shutil.move(str(listing_dir), str(backup))
+    try:
+        cp = _run("--check")
+        assert cp.returncode != 0
+        assert "does not exist" in cp.stdout or "does not exist" in cp.stderr
+    finally:
+        if backup.exists():
+            import shutil
+            shutil.move(str(backup), str(listing_dir))
+
+
+def test_listings_contain_all_keystone_tools():
+    """Sanity check: the glama.json listing has an entry for every tool
+    the keystone registers. This is what --check enforces, but the test
+    makes the expectation explicit in case someone removes --check."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("server", REPO_ROOT / "server.py")
+    server = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(server)
+    keystone_tools = set(server.mcp._tool_manager._tools.keys())
+    glama = json.loads((REPO_ROOT / "dist" / "keystone-listing" / "glama.json").read_text())
+    listed_tools = {t["name"] for t in glama["tools"]}
+    assert keystone_tools == listed_tools, \
+        f"keystone={keystone_tools - listed_tools} not in listing; listing={listed_tools - keystone_tools} extra"
+
+
+def test_listing_uses_camelCase_for_x402_bazaar():
+    """The x402-bazaar-discovery.json uses network=`eip155:8453` (Base
+    mainnet). Per x402 Bazaar's wire spec, `network` is required and
+    `service_name` is human-readable."""
+    payload = json.loads((REPO_ROOT / "dist" / "keystone-listing" / "x402-bazaar-discovery.json").read_text())
+    assert "network" in payload
+    assert payload["network"] == "eip155:8453"
+    assert "service_name" in payload
+    assert "MEOK" in payload["service_name"]
+
+
+def test_smithery_lists_5_tools():
+    """Smithery's listing should match the keystone surface exactly —
+    a tool listed but not implemented (or vice versa) is a buyer-pact
+    violation."""
+    import yaml
+    payload = yaml.safe_load((REPO_ROOT / "dist" / "keystone-listing" / "smithery.yaml").read_text())
+    tools = {t["name"] for t in payload["tools"]}
+    expected = {"health", "list_experts", "spending_report", "audit_anchor", "sign_receipt", "verify_receipt"}
+    assert tools == expected, f"smithery tools mismatch: extra={tools - expected} missing={expected - tools}"

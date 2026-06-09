@@ -60,6 +60,15 @@ jobs:
           pip install x402 pytest hypothesis
           pytest tests/test_x402.py tests/test_x402_properties.py -v
 
+      - name: Verify keystone listings are up to date
+        # scripts/gen-keystone-payload.py generates the marketplace listings
+        # (Glama / Smithery / MCP.so / Pulse / x402-Bazaar) from the keystone's
+        # tool surface in server.py. --check regenerates into a temp dir and
+        # diffs against the committed output. Fails if anyone added a tool to
+        # server.py but forgot to regenerate the listings.
+        run: |
+          python3 scripts/gen-keystone-payload.py --check
+
   e2e:
     # Real end-to-end: install a flagship PKG, boot the ACTUAL gateway, and drive
     # it with the mcp streamable-HTTP client (real initialize + tools/list). This

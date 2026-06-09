@@ -247,26 +247,31 @@ build:
 
 # Tools the marketplace renders with COST WARNING prefixes in the card.
 # Paywalled tools carry a $0.05 price; free tools are top-of-funnel.
+# Built from the TOOLS list above so this stays in sync with server.py
+# (enforced by scripts/gen-keystone-payload.py --check in CI).
 tools:
-  - name: health
-    description: "Keystone health + version info (free, no payment required)."
-  - name: list_experts
-    description: "List the 14 OpenScore safety experts (free, top-of-funnel)."
-  - name: spending_report
-    description: "Return the keystone's x402 spending report (free observability)."
-  - name: sign_receipt
-    description: "COST WARNING: $0.05 per call — Sign a SHA-256 hash and return a Signet receipt."
-    paywall: true
-    price: "$0.05"
-    network: eip155:8453
-    asset: USDC
-  - name: verify_receipt
-    description: "COST WARNING: $0.05 per call — Verify a Signet receipt by id and re-compute the HMAC."
-    paywall: true
-    price: "$0.05"
-    network: eip155:8453
-    asset: USDC
+{_smithery_tools_block()}
 """
+
+
+def _smithery_tools_block() -> str:
+    """Render the Smithery `tools:` block from the TOOLS list.
+    Paywalled tools get the COST WARNING prefix + x402 metadata; free
+    tools just get the description."""
+    lines = []
+    for t in TOOLS:
+        if t["paywall"]:
+            lines.append(f"""  - name: {t['name']}
+    description: "COST WARNING: {t['price']} per call — {t['description'].split('— ', 1)[-1] if '— ' in t['description'] else t['description']}"
+    paywall: true
+    price: "{t['price']}"
+    network: eip155:8453
+    asset: USDC""")
+        else:
+            # Strip any rate-limit / "free, top-of-funnel" suffix for a cleaner card
+            desc = t["description"]
+            lines.append(f'  - name: {t["name"]}\n    description: "{desc}"')
+    return "\n".join(lines)
 
 
 def gen_mcpso_json() -> str:
@@ -432,9 +437,49 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, default=REPO_ROOT / "dist" / "keystone-listing",
                         help="Output directory (default: dist/keystone-listing)")
+    parser.add_argument("--check", action="store_true",
+                        help="Regenerate into a temp dir and diff against --out; exit 1 if any "
+                        "file would change. Use in CI to catch 'added a tool, forgot to update "
+                        "the listing' before the marketplace goes stale.")
     args = parser.parse_args()
-    args.out.mkdir(parents=True, exist_ok=True)
+    if args.check:
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix="meok-keystone-check-") as tmp:
+            tmp_path = Path(tmp)
+            # Regenerate into the temp dir
+            args.out = tmp_path
+            args.out.mkdir(parents=True, exist_ok=True)
+            (args.out / "glama.json").write_text(gen_glama_json())
+            (args.out / "smithery.yaml").write_text(gen_smithery_yaml())
+            (args.out / "mcpso.json").write_text(gen_mcpso_json())
+            (args.out / "pulse.md").write_text(gen_pulse_pitch())
+            (args.out / "x402-bazaar-discovery.json").write_text(gen_x402_bazaar_discovery())
+            # Diff against the committed output
+            import filecmp
+            committed = REPO_ROOT / "dist" / "keystone-listing"
+            if not committed.exists():
+                print(f"FAIL: {committed} does not exist. Run scripts/gen-keystone-payload.py first.")
+                return 1
+            differing = []
+            for f in ("glama.json", "smithery.yaml", "mcpso.json", "pulse.md", "x402-bazaar-discovery.json"):
+                a = committed / f
+                b = tmp_path / f
+                if not a.exists():
+                    print(f"FAIL: {a} is missing from the committed listing")
+                    return 1
+                if not filecmp.cmp(a, b, shallow=False):
+                    differing.append(f)
+            if differing:
+                print("FAIL: keystone-listing is out of date with server.py. Run:")
+                print("  python3 scripts/gen-keystone-payload.py")
+                print("And commit the regenerated files. Differing files:")
+                for f in differing:
+                    print(f"  dist/keystone-listing/{f}")
+                return 1
+            print("OK: dist/keystone-listing/ matches the current server.py tool surface")
+        return 0
 
+    args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "glama.json").write_text(gen_glama_json())
     (args.out / "smithery.yaml").write_text(gen_smithery_yaml())
     (args.out / "mcpso.json").write_text(gen_mcpso_json())
