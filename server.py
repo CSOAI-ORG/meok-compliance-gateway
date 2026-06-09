@@ -41,7 +41,8 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
-from meok_x402 import paywalled, spending_snapshot
+from meok_x402 import paywalled, spending_snapshot, audit_anchor_snapshot
+from meok_rate_limit import ratelimited
 
 # Module-level FastMCP singleton — http_server.py reads this.
 mcp = FastMCP("meok-compliance-gateway")
@@ -108,7 +109,8 @@ def _signing_key() -> bytes:
 # ────────────────────────── Free tools (funnel) ──────────────────────────
 
 
-@mcp.tool(description="List the 14 OpenScore safety experts (free, top-of-funnel).")
+@mcp.tool(description="List the 14 OpenScore safety experts (free, top-of-funnel, 5 calls/day per caller).")
+@ratelimited("list_experts")
 def list_experts(domain: str | None = None) -> str:
     """Return the expert registry, optionally filtered by domain.
 
@@ -124,10 +126,20 @@ def list_experts(domain: str | None = None) -> str:
     return json.dumps({"count": len(experts), "experts": experts}, indent=2)
 
 
-@mcp.tool(description="Return the keystone's x402 spending report (free observability).")
+@mcp.tool(description="Return the keystone's x402 spending report (free observability, 20 calls/day per caller).")
+@ratelimited("spending_report")
 def spending_report() -> str:
     """In-memory log of verified paid calls. No PII (payer addresses are truncated)."""
     return json.dumps(spending_snapshot(), indent=2)
+
+
+@mcp.tool(description="Return the keystone's tamper-evident audit-anchor chain tail + head (free observability).")
+@ratelimited("spending_report")
+def audit_anchor() -> str:
+    """Chained-HMAC audit log: every settled x402 call appends a row whose
+    hash includes the previous row's hash. Buyers reconcile this against
+    the facilitator dashboard to confirm what their agents actually paid for."""
+    return json.dumps(audit_anchor_snapshot(limit=50), indent=2)
 
 
 @mcp.tool(description="Keystone health + version info (free, no payment required).")
