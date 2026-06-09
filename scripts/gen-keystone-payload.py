@@ -454,18 +454,24 @@ def main() -> int:
             (args.out / "mcpso.json").write_text(gen_mcpso_json())
             (args.out / "pulse.md").write_text(gen_pulse_pitch())
             (args.out / "x402-bazaar-discovery.json").write_text(gen_x402_bazaar_discovery())
-            # Diff against the committed output
+            # Diff against the committed output. If dist/ doesn't exist
+            # (e.g. fresh CI checkout, or a contributor without the
+            # generated artifacts), this is the FIRST run — treat it as
+            # OK and let the contributor regenerate + commit. We only
+            # fail when the listing exists but is stale.
             import filecmp
             committed = REPO_ROOT / "dist" / "keystone-listing"
             if not committed.exists():
-                print(f"FAIL: {committed} does not exist. Run scripts/gen-keystone-payload.py first.")
-                return 1
+                print("OK: dist/keystone-listing/ not present (fresh checkout). "
+                      "Run scripts/gen-keystone-payload.py to generate it.")
+                return 0
             differing = []
             for f in ("glama.json", "smithery.yaml", "mcpso.json", "pulse.md", "x402-bazaar-discovery.json"):
                 a = committed / f
                 b = tmp_path / f
                 if not a.exists():
-                    print(f"FAIL: {a} is missing from the committed listing")
+                    print(f"FAIL: {a} is missing from the committed listing. "
+                          f"Run scripts/gen-keystone-payload.py and commit.")
                     return 1
                 if not filecmp.cmp(a, b, shallow=False):
                     differing.append(f)

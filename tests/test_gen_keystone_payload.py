@@ -69,9 +69,11 @@ def test_check_detects_stale_glama_json(tmp_path, monkeypatch):
         )
 
 
-def test_check_fails_cleanly_when_dist_missing(tmp_path, monkeypatch):
-    """If dist/keystone-listing/ doesn't exist at all, --check should
-    fail with a clear message rather than crashing."""
+def test_check_passes_cleanly_when_dist_missing(tmp_path, monkeypatch):
+    """If dist/keystone-listing/ doesn't exist (fresh CI checkout, fresh
+    contributor clone), --check should pass with a clear "regenerate"
+    message rather than failing. The contributor will run the generator
+    and commit the output; --check on the next push will then verify."""
     # Move the listing aside
     listing_dir = REPO_ROOT / "dist" / "keystone-listing"
     backup = tmp_path / "keystone-listing-backup"
@@ -80,8 +82,9 @@ def test_check_fails_cleanly_when_dist_missing(tmp_path, monkeypatch):
         shutil.move(str(listing_dir), str(backup))
     try:
         cp = _run("--check")
-        assert cp.returncode != 0
-        assert "does not exist" in cp.stdout or "does not exist" in cp.stderr
+        assert cp.returncode == 0, f"--check should pass on fresh checkout: stdout={cp.stdout!r} stderr={cp.stderr!r}"
+        assert "not present" in cp.stdout or "fresh" in cp.stdout.lower(), \
+            f"unhelpful fresh-checkout message: {cp.stdout!r}"
     finally:
         if backup.exists():
             import shutil
