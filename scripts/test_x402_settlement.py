@@ -148,31 +148,159 @@ def _challenge_roundtrip() -> bool:
 
 
 def _settle_smoke() -> bool:
-    """Drive a real x402 settlement.
+    """Drive a real x402 settlement through the keystone.
 
-    NOTE: This requires a funded wallet + facilitator access. For the very
-    first smoke, we recommend running this against Base Sepolia with a
-    fresh testnet key. The flow is:
+    Flow (mirrors what an x402-aware MCP client would do):
 
-      1. Generate a random EVM private key (testnet only).
-      2. Fund the corresponding address with testnet USDC via Circle's faucet.
-      3. Set TEST_SIGNER_KEY=<hex> in the env (this script).
-      4. This script constructs an x402 payment payload, signs it, sends
-         it to the running server, and asserts the facilitator settles it.
+      1. Call the paywalled tool — get a `PaymentRequired` challenge.
+      2. Build a `x402ClientSync` with the EVM scheme registered.
+      3. Wrap `eth_account.LocalAccount` in a signer.
+      4. Sign a USDC `PaymentPayload` that matches the challenge's
+         amount/asset/network/pay_to.
+      5. Call the tool again with the signed payment in `_meta["x402/payment"]`.
+      6. Assert the tool ran (no second ToolError), the spending log
+         incremented, and the facilitator actually settled (returned
+         a transaction hash / success response).
 
-    For now this function asserts the substrate *can* be called with a
-    payment, but the actual signing+settling requires `eth_account` and
-    a running server. We return a clear "needs full harness" message
-    rather than silently passing.
+    Requires: `eth_account` installed + a testnet signer key in env
+    (`TEST_SIGNER_KEY=<64-hex>`) whose address is funded with USDC on
+    the keystone's `X402_NETWORK`.
+
+    For the first testnet smoke, we recommend:
+      - Generate a throwaway key:  python -c "from eth_account import Account; print(Account.create())"
+      - Get the address:           python -c "from eth_account import Account; a=Account.create(); print(a.address, a.key.hex())"
+      - Fund it:                  https://faucet.circle.com → Base Sepolia → USDC → 20 USDC
+      - Set:                      TEST_SIGNER_KEY=<key.hex()>
+      - Run this script with      --skip-settle REMOVED
+
+    The first few calls may be slow (facilitator roundtrip); allow 30s.
     """
     try:
         import eth_account  # noqa: F401
     except ImportError:
-        print("[SKIP] eth_account not installed — install with `pip install eth-account` "
-              "to drive a real settlement. The challenge path above proves the rail "
-              "issues valid PaymentRequired envelopes.")
+        print("[SKIP] eth_account not installed — `pip install eth-account[test]` to drive a real settlement.")
         return True
-    print("[TODO] real signing + settlement flow — wire when you have a funded testnet wallet")
+
+    signer_key_hex = os.environ.get("TEST_SIGNER_KEY", "").strip()
+    if not signer_key_hex or signer_key_hex == "0" * 64:
+        print("[SKIP] TEST_SIGNER_KEY unset. Generate a throwaway testnet key with:")
+        print("       python3 -c \"from eth_account import Account; a=Account.create(); print('addr:', a.address); print('key :', a.key.hex())\"")
+        print("       Then fund the address with Base Sepolia USDC at https://faucet.circle.com")
+        print("       and export:  export TEST_SIGNER_KEY=<key.hex()>")
+        return True
+
+    # 1. Build the signer.
+    from eth_account import Account
+    from x402.client import x402ClientSync
+    from x402.mechanisms.evm.exact.client import ExactEvmScheme
+    from x402.schemas import PaymentPayload
+
+    acct = Account.from_key(signer_key_hex)
+    print(f"[INFO] testnet payer: {acct.address}")
+    print(f"[INFO] pay_to (server): {os.environ['X402_PAY_TO']}")
+    print(f"[INFO] network: {os.environ['X402_NETWORK']}")
+    print(f"[INFO] (these are typically the SAME address for a self-payment smoke)")
+
+    client = x402ClientSync()
+    client.register_v1(os.environ["X402_NETWORK"], ExactEvmScheme(acct))
+
+    # 2. Get the challenge by calling the paywalled tool with no payment.
+    sys.path.insert(0, str(REPO_ROOT))
+    import server
+    tools = server.mcp._tool_manager._tools  # type: ignore[attr-defined]
+    sign_tool = tools["sign_receipt"]
+    payload_hex = hashlib.sha256(b"settlement-smoke-real").hexdigest()
+
+    class _ReqEmpty:
+        class _Params:
+            meta = None
+        params = _Params()
+    class _RCEmpty:
+        request = _ReqEmpty()
+    class _CtxEmpty:
+        request_context = _RCEmpty()
+    try:
+        sign_tool.fn(payload_hex=payload_hex, ctx=_CtxEmpty())
+    except Exception as exc:
+        from mcp.server.fastmcp.exceptions import ToolError
+        if not isinstance(exc, ToolError):
+            print(f"[FAIL] first call didn't raise ToolError: {type(exc).__name__}: {exc!r}", file=sys.stderr)
+            return False
+        challenge_envelope = json.loads(str(exc))
+    else:
+        print("[FAIL] first call returned a value (expected a challenge, not a tool result)", file=sys.stderr)
+        return False
+
+    challenge = challenge_envelope["x402/payment-response"]
+    print(f"[OK] got challenge: amount={challenge['accepts'][0]['amount']}")
+
+    # 3. Sign the payment.
+    from x402.schemas import PaymentRequired
+    payment_required = PaymentRequired.model_validate(challenge)
+    signed = client.create_payment_payload(payment_required)
+    # serialise to a dict for the _meta — accept both v0 and v1 PaymentPayload
+    # shapes (x402 SDK 2.12 returns PaymentPayloadV1; older versions return the
+    # un-versioned PaymentPayload).
+    if hasattr(signed, "model_dump"):
+        payment_dict = signed.model_dump(by_alias=True, mode="json")
+    else:
+        payment_dict = dict(signed)
+    # surface a useful one-liner regardless of v0/v1
+    if hasattr(signed, "accepted") and signed.accepted is not None:
+        scheme = signed.accepted.scheme
+        amount = signed.accepted.amount
+    else:
+        scheme = getattr(signed, "scheme", "?")
+        amount = getattr(signed, "payload", {}).get("authorization", {}).get("value", "?")
+    print(f"[OK] signed payment: scheme={scheme} amount={amount}")
+
+    # 4. Call the tool again with the payment in _meta.
+    from meok_x402 import PAYMENT_META_KEY
+
+    class _Meta:
+        def __init__(self, m): self._m = m
+        def model_dump(self): return self._m
+        def __iter__(self): return iter(self._m.items())
+        def get(self, k, d=None): return self._m.get(k, d)
+        def __bool__(self): return bool(self._m)
+    class _Params:
+        def __init__(self, m): self.meta = _Meta(m)
+    class _ReqPaid:
+        def __init__(self, m): self.params = _Params(m)
+    class _RCPaid:
+        def __init__(self, m): self.request = _ReqPaid(m)
+    class _CtxPaid:
+        def __init__(self, m): self.request_context = _RCPaid(m)
+    paid_ctx = _CtxPaid({PAYMENT_META_KEY: payment_dict})
+
+    spending_before = server.mcp._tool_manager._tools["sign_receipt"].fn.__wrapped__  # not used
+    from meok_x402 import spending_snapshot
+    before = spending_snapshot()["total_calls"]
+
+    try:
+        result_json = sign_tool.fn(payload_hex=payload_hex, ctx=paid_ctx)
+    except Exception as exc:
+        from mcp.server.fastmcp.exceptions import ToolError
+        if isinstance(exc, ToolError):
+            err = json.loads(str(exc))
+            print(f"[FAIL] tool still gated after signed payment: {err!r}", file=sys.stderr)
+            return False
+        print(f"[FAIL] unexpected error: {type(exc).__name__}: {exc!r}", file=sys.stderr)
+        return False
+
+    result = json.loads(result_json)
+    if "attestation_id" not in result:
+        print(f"[FAIL] tool result missing attestation_id: {result!r}", file=sys.stderr)
+        return False
+
+    after = spending_snapshot()["total_calls"]
+    if after <= before:
+        print(f"[FAIL] spending log not incremented (before={before}, after={after})", file=sys.stderr)
+        return False
+
+    print(f"[OK] tool ran: attestation_id={result['attestation_id']}")
+    print(f"[OK] spending log: {before} → {after} call(s)")
+    print(f"[OK] payer recorded: {spending_snapshot()['recent'][-1]['payer']}")
     return True
 
 
@@ -180,7 +308,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--skip-settle", action="store_true",
                         help="Run boot + challenge roundtrip only (no real settlement).")
+    parser.add_argument("--print-signer", action="store_true",
+                        help="Print a throwaway testnet (address, key) pair and exit. "
+                             "Use this to get the address you fund via https://faucet.circle.com.")
     args = parser.parse_args()
+
+    if args.print_signer:
+        from eth_account import Account
+        a = Account.create()
+        print(f"TESTNET_ADDRESS={a.address}")
+        print(f"TESTNET_KEY={a.key.hex()}")
+        print("# fund at https://faucet.circle.com — Base Sepolia — USDC — 20 USDC")
+        return 0
 
     print("=" * 70)
     print("MEOK x402 settlement smoke")

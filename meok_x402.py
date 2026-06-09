@@ -336,9 +336,27 @@ def paywalled(price: Optional[str] = None, *, tool_name: Optional[str] = None) -
             payment = _extract_meta(ctx).get(PAYMENT_META_KEY)
             if not payment:
                 return _unpaid(name, price)
+            # The wire format is a dict; the SDK's verify/settle expect a typed
+            # PaymentPayload (v1 in 2.12+). Re-validate at the boundary so we
+            # support both wire shapes (v1 dict from clients, model_validate
+            # canonicalises it). This is the SDK 2.12 cutover — see x402-rollout-state.
+            try:
+                from x402.schemas import PaymentPayload, PaymentPayloadV1
+                if isinstance(payment, dict):
+                    if "payload" in payment and "scheme" in payment:
+                        # v1 wire format: {x402Version, scheme, network, payload: {...}}
+                        payment = PaymentPayloadV1.model_validate(payment)
+                    else:
+                        # legacy / V0: {x402_version, payload, accepted, resource, extensions}
+                        payment = PaymentPayload.model_validate(payment)
+            except Exception as exc:  # noqa: BLE001
+                log.warning("x402 payment payload failed to validate: %r", exc)
+                return _unpaid(name, price, "malformed payment payload")
             try:
                 server = _resource_server()
                 reqs = server.find_matching_requirements(_accepts(price), payment)
+                if reqs is None:
+                    return _unpaid(name, price, "no matching requirements")
                 verify = server.verify_payment(payment, reqs)
                 if not getattr(verify, "is_valid", False):
                     return _unpaid(name, price, getattr(verify, "invalid_reason", None) or "verification failed")

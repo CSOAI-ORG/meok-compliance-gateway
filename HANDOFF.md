@@ -3,6 +3,8 @@
 > **Total time**: ~3.5 hours manual. **$11K/day of Year-1 ARR at risk** per `meok-deep-audit-2026-06-08` P0-4.
 > **Goal**: unblock the keystone for live revenue. Every step is account-gated — no automation can do these.
 > **Per memory `meok-fleet-monetization-blockers.md`**: each step is independent; do them in the listed order for fastest first $$ impact.
+>
+> **Last updated**: 2026-06-09 — added §6 "Revenue Rail: x402 testnet → mainnet" (~30 min, $0). The keystone is now bootable end-to-end on `feat/revenue-rail-testnet` (commit `f2bcc70`). See `DEPLOY_REVENUE_RAIL.md` for the full 8-step deploy runbook.
 
 ---
 
@@ -104,6 +106,12 @@
 
 ## Bonus: x402 paywall go-live (gated on Coinbase CDP wallet)
 
+> **2026-06-09 update**: this section is now superseded by §6 above. The
+> code is staged on `feat/revenue-rail-testnet`; the wallet-paste is the
+> last manual step. Do §6 first; the rest of this bonus section
+> (wallet, env, merge PRs, PyPI) applies once the testnet settlement is
+> green.
+
 After the 5 above are done, the x402 paywall can go live. This is the second revenue rail.
 
 **What's needed**:
@@ -136,16 +144,17 @@ The 28 hive-config repos under `CSOAI-ORG/<domain>-hive` are scaffolded locally 
 
 | # | Action | Time | What you see when done |
 |---|---|---|---|
-| 1 | Resend (step 4) | 5 min | keystone sends real emails |
-| 2 | LinkedIn (step 5) | 10 min | enterprise inbound resumes |
-| 3 | Vercel deploys (step 2) | 40 min | `*.vercel.app` URLs live |
-| 4 | Stripe Live (step 1) | 2 h | subscriptions billable |
-| 5 | Namecheap DNS (step 3) | 1 h | `meok.ai` resolves to Vercel |
-| 6 | Coinbase CDP + x402 | 1 h | per-call monetization live |
-| 7 | gh auth + 28 repos | 30 min | public hive configs discoverable |
-| 8 | Push 41 server.json patches | 30 min | 6-channel MCP marketplace listings go live |
+| 1 | **🆕 Revenue rail testnet smoke (§6)** | 30 min | first settled USDC payment on Base Sepolia |
+| 2 | Resend (step 4) | 5 min | keystone sends real emails |
+| 3 | LinkedIn (step 5) | 10 min | enterprise inbound resumes |
+| 4 | Vercel deploys (step 2) | 40 min | `*.vercel.app` URLs live |
+| 5 | Stripe Live (step 1) | 2 h | subscriptions billable |
+| 6 | Namecheap DNS (step 3) | 1 h | `meok.ai` resolves to Vercel |
+| 7 | Coinbase CDP + mainnet x402 (post-§6) | 5 min | per-call monetization live on mainnet |
+| 8 | gh auth + 28 repos | 30 min | public hive configs discoverable |
+| 9 | Push 41 server.json patches | 30 min | 6-channel MCP marketplace listings go live |
 
-**Total: ~5.5 hours manual**. Do it on a Sunday with coffee; the EU AI Act clock is at T-58 days.
+**Total: ~5.5 hours manual** (was 5.5; +30 min for §6, but §6 is the fastest first-$$ and is now unblocked). Do it on a Sunday with coffee; the EU AI Act clock is at T-58 days.
 
 ---
 
@@ -169,3 +178,50 @@ The 28 hive-config repos under `CSOAI-ORG/<domain>-hive` are scaffolded locally 
 - `mcp-x402-bazaar-micropayments.md` (memory) — x402 state of play (165M tx, $50M+ USDC processed)
 - `x402-rollout-state.md` (memory) — 5 open PRs awaiting merge
 - `meok-deep-audit-2026-06-08.md` (memory) — the $11K/day ARR-at-risk calc (P0-4)
+
+---
+
+## 6. 🆕 Revenue Rail: x402 testnet → mainnet (~30 min, $0) — staged 2026-06-09
+
+**What it unblocks**: the keystone can boot (was previously broken — `http_server.py:6` did `import server` and the file didn't exist), accept a USDC payment, and settle it on-chain. The first revenue event is a real `Transfer` event on Base Sepolia USDC.
+
+**Where the code lives**: branch `feat/revenue-rail-testnet` at `f2bcc70` (worktree `/tmp/revenue-rail-2026-06-09/`). 6 files:
+- `server.py` (new) — 5 keystone tools (3 free + 2 paywalled at $0.05)
+- `meok_x402.py` (patched) — adds `_PAID_LOG` + `spending_snapshot`; fixes v1 `PaymentPayload` validation in `paywalled`
+- `.env.example` (new) — 5 env vars, testnet default
+- `scripts/test_x402_settlement.py` (new) — boot + challenge + real-settlement smoke (with `--print-signer` helper)
+- `DEPLOY_REVENUE_RAIL.md` (new) — the 8-step deploy runbook
+- `HANDOFF.md` (this file) — updated with §6
+
+**Steps** (in order):
+
+1. **Push the branch** (5 min):
+   ```bash
+   cd /tmp/revenue-rail-2026-06-09
+   env -u GITHUB_TOKEN -u GH_TOKEN git push -u origin feat/revenue-rail-testnet
+   ```
+   Then open a PR (the body is the commit message).
+
+2. **Deploy to Cloud Run** (15 min, per `GCP_DEPLOY.md` + the env-var overlay in `DEPLOY_REVENUE_RAIL.md` §2a). Two CRITICAL notes:
+   - `X402_PAY_TO` and `MEOK_ATTESTATION_KEY` go via `--set-secrets` (not `--set-env-vars`) — the SOV3 audit caught us with CRITICAL #3 if they ever sit in env.
+   - Port is 8080, not 8000.
+
+3. **Run the testnet smoke first** (10 min, $0):
+   ```bash
+   # Get a throwaway testnet key
+   /opt/homebrew/bin/python3.11 scripts/test_x402_settlement.py --print-signer
+   # → prints TESTNET_ADDRESS + TESTNET_KEY
+   ```
+   - Fund the address at https://faucet.circle.com (Base Sepolia, USDC, 20 USDC, free, 2h cooldown per pair)
+   - Create a Coinbase CDP testnet wallet at https://portal.cdp.coinbase.com (free, no KYC for testnet)
+   - Paste both into env, run the smoke **without** `--skip-settle`
+
+4. **Verify on BaseScan Sepolia**: https://sepolia.basescan.org/address/<X402_PAY_TO> should show a 0.05 USDC `Transfer`.
+
+5. **Flip to mainnet** (2 min): `X402_NETWORK=eip155:8453` (was `84532`), redeploy.
+
+**Verify the smoke passed before flipping**: the script exits 0 only if the facilitator actually settled. If it hangs, the facilitator (`https://www.x402.org/facilitator`) is probably timing out — wait 30s and retry, or set `X402_FACILITATOR_URL` to a backup.
+
+**Time + cost**: ~30 min to first settled testnet payment. $0 (testnet USDC is free). ~35 min total to mainnet live billing.
+
+**What this does NOT unblock**: G1 (PyPI cap), G2 (DNS for meok.ai etc.), G6 (directory signups). The keystone deploys via Docker, so G1 is non-blocking for the Docker path. G2 is cosmetic (Cloud Run gives a `*.run.app` URL that works fine for x402). G6 is the next-batch work after this.
