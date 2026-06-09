@@ -62,6 +62,7 @@ CANONICAL_RESEARCH = [
     ("SOV3_12_DIM_SYNTHESIS.md", "15 competitors × 12 dimensions = 180-cell matrix, 5 deep-dive playbooks"),
     ("MEOK_API_STRATEGY.md", "10 API gaps, 3-phase roadmap (REST → GraphQL+gRPC+WebSocket → MCP-native)"),
     ("MEOK_UX_STRATEGY.md", "10-platform UX scorecard, 4 SOV3 design principles, 5 wireframe specs (Wiz-simplicity meets Credo AI intelligence)"),
+    ("MEOK_ARCHITECTURE_STRATEGY.md", "15-platform architecture deep-dive: 9 patterns that work, 9 that fail, 6 unified-architecture gaps, 7 SOV3 moats (unified gov+runtime, platform-agnostic, continuous compliance, hybrid deploy, knowledge graph, API-first, agentic)"),
     ("SHADOW_AI_DETECTION_MCP_SPEC.md", "6 MCP tools, 4 detection sources, 3 deployment modes (~$2.5M Year-1 ARR)"),
     ("WATCHDOG_CERTIFICATION_PLATFORM_SPEC.md", "3-tier AI safety cert (Foundation/Professional/System), $8.9M Year-2 potential"),
     ("ONE_TRUST_ESCAPE_TCO_CALC.md", "7-input TCO calculator, 70-95% savings vs OneTrust, migration playbook"),

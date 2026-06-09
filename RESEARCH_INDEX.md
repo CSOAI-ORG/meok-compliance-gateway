@@ -122,11 +122,12 @@ The v2 Kimi dossier (`/tmp/kimi_dossier_v2/`, 35 files, ~30K lines) was ingested
 | 8 | `SOV3_FINANCIAL_MODEL_2026-2028.md` | 418 | `sov3_business_model.agent.final.md` | 8-quarter P&L ($10K → $5M MRR), 6 revenue streams, $480M-$2.25B exit |
 | 9 | `SOV3_12_DIM_SYNTHESIS.md` | 337 | `sov3_intel_dim01-12.md` (12-dim research) | 15 competitors × 12 dimensions, 5 deep-dive playbooks, 7 JTBDs |
 | 10 | `MEOK_API_STRATEGY.md` | 179 | `deepdive_api_analysis.md` | 10 API gaps, 3-phase API roadmap, multi-protocol architecture |
-| 11 | `EU_AI_ACT_DEADLINE_INTEL.md` | 200 | `sov3_intel_dim05.md` | Aug 2 2026 deadline pack, 9 requirements, 4-tier penalties, 6-week launch sequence |
-| 12 | `CVE_INTEL_BRIEF_2026-06-08.md` | 220 | `sov3_intel_dim04.md` | 3-CVE publication pack (CrowdStrike / Azure / Claude Code), 5-channel pattern |
-| 13 | `MCP_MARKETPLACE_STRATEGY.md` | 200 | `deepdive_mcp_inventory.md` | 6-marketplace rollout, 7-step submission pattern, 10 first-mover positions |
+| 11 | `MEOK_UX_STRATEGY.md` | 210 | `deepdive_uiux_analysis.md` | 10-platform UX scorecard, 4 SOV3 design principles, 5 wireframe specs (Wiz-simplicity meets Credo AI intelligence) |
+| 12 | `EU_AI_ACT_DEADLINE_INTEL.md` | 200 | `sov3_intel_dim05.md` | Aug 2 2026 deadline pack, 9 requirements, 4-tier penalties, 6-week launch sequence |
+| 13 | `CVE_INTEL_BRIEF_2026-06-08.md` | 220 | `sov3_intel_dim04.md` | 3-CVE publication pack (CrowdStrike / Azure / Claude Code), 5-channel pattern |
+| 14 | `MCP_MARKETPLACE_STRATEGY.md` | 200 | `deepdive_mcp_inventory.md` | 6-marketplace rollout, 7-step submission pattern, 10 first-mover positions |
 
-**Total: 13 canonical docs, ~2,800 lines, ~12,000+ lines of source dossier reified.** The full wave-1+2+3 commit chain on `claude/review-changes-mkbcvckpl5ix3r03-MkKCu`: 3dad2ee → c00d002 → d9ee13f.
+**Total: 14 canonical docs, ~3,000 lines, ~12,000+ lines of source dossier reified.** The full wave-1+2+3 commit chain on `claude/review-changes-mkbcvckpl5ix3r03-MkKCu`: 3dad2ee → c00d002 → d9ee13f.
 
 ### 10 new high-confidence findings (v2 dossier, 8 Jun 2026)
 
