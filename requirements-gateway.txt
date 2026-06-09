@@ -9,11 +9,7 @@
 # 2026-07-28 spec migration is an `mcp` SDK upgrade (+ flagship code), tracked
 # in LISTING.md — bump the pin below deliberately when the SDK ships support.
 mcp==1.27.2
-<<<<<<< HEAD
 uvicorn[standard]==0.49.0
-=======
-uvicorn[standard]==0.48.0
 # meok_crown.py — Ed25519 root-of-trust + sigil seal (the asymmetric attestation
 # layer; HMAC in meok_x402.py stays for x402 receipts). See CROWN_ROOT_KEY_HARDENING_SPEC.md.
 cryptography==46.0.7
->>>>>>> c0bb9ea (feat(crown): Ed25519 sigil seal + root-of-trust (meok_crown.py))
