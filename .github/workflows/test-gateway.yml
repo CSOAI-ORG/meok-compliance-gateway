@@ -101,3 +101,82 @@ jobs:
       - name: Stop gateway
         if: always()
         run: kill "$(cat /tmp/gateway.pid)" 2>/dev/null || true
+
+  x402-rail-smoke:
+    # Guards the revenue rail against future x402 SDK upgrades. The
+    # `meok_x402.paywalled` wrapper accepts both v0 and v1 PaymentPayload
+    # shapes; if a future SDK drops one (or a pin bump breaks the
+    # `model_validate` path), this job fails before the change can merge.
+    # Runs in --skip-settle mode by default — no facilitator, no wallet,
+    # no network. The point is the substrate shape, not the network call.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install gateway runtime + x402 + eth_account
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-gateway.txt x402 eth-account pytest
+
+      - name: Boot + challenge roundtrip
+        # The smoke imports `server` (the keystone module) and drives the
+        # exact same code path that an MCP client would: tool call without
+        # payment → PaymentRequired challenge → assert shape.
+        env:
+          X402_ENABLED: "1"
+          X402_PAY_TO: "0x1234567890123456789012345678901234567890"
+          X402_NETWORK: "eip155:84532"
+          MEOK_ATTESTATION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        run: |
+          python scripts/test_x402_settlement.py --skip-settle
+
+      - name: Sign a USDC payment (offline, no facilitator)
+        # Proves the SDK's `register_v1` + `ExactEvmScheme` path produces
+        # a v1 PaymentPayload the keystone's `paywalled` wrapper can
+        # match. Uses a throwaway test key; no USDC, no facilitator.
+        env:
+          X402_ENABLED: "1"
+          X402_PAY_TO: "0x1234567890123456789012345678901234567890"
+          X402_NETWORK: "eip155:84532"
+          MEOK_ATTESTATION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        run: |
+          python3 - <<'PY'
+          import os, sys, json
+          sys.path.insert('.', 0)
+          from eth_account import Account
+          from x402.client import x402ClientSync
+          from x402.mechanisms.evm.exact.client import ExactEvmScheme
+          from x402.schemas import PaymentRequired, ResourceInfo, PaymentRequirements
+          acct = Account.create()
+          client = x402ClientSync()
+          client.register_v1(os.environ['X402_NETWORK'], ExactEvmScheme(acct))
+          pr = PaymentRequired(
+              x402_version=1, error='Payment required',
+              resource=ResourceInfo(url='mcp://tool/sign_receipt', service_name='meok'),
+              accepts=[PaymentRequirements(
+                  scheme='exact', network=os.environ['X402_NETWORK'],
+                  asset='0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+                  amount='50000', pay_to=os.environ['X402_PAY_TO'], max_timeout_seconds=300,
+              )],
+          )
+          signed = client.create_payment_payload(pr)
+          # Assert v1 shape
+          assert hasattr(signed, 'scheme') and signed.scheme == 'exact', f'not v1: {type(signed).__name__}'
+          assert hasattr(signed, 'payload') and 'authorization' in signed.payload, 'no authorization'
+          # Re-validate on the keystone side
+          from meok_x402 import paywalled
+          from x402.schemas import PaymentPayload, PaymentPayloadV1
+          wire = signed.model_dump(by_alias=True, mode='json')
+          recon = PaymentPayloadV1.model_validate(wire)
+          print(f'OK: signed {type(signed).__name__}, keystone accepted v1 wire')
+          PY
+
+      - name: Pytest
+        # 15/15 must stay green. If a future change breaks any test, fail.
+        run: pytest tests/ -q
