@@ -45,6 +45,29 @@ DOMAIN_REGISTRY = _gen_hive.DOMAIN_REGISTRY
 HIVE_GENESIS = "2026-06-07"
 CSOAI_ORG_URL = "https://github.com/CSOAI-ORG"
 
+# Canonical research docs — reified from /tmp/kimi_dossier_v2/ (Kimi 8 Jun 2026).
+# Per [[eat-execute-july4-plan-2026-06-08]] + 3dad2ee / c00d002 / d9ee13f.
+# These are the source-of-truth docs that back the differentiators, FAQ answers,
+# and authority queries surfaced on the hive landing pages. 13 docs, ~2,800 lines.
+# All rubric-pass per RUBRIC_EXTERNAL_COMMS.md § 8.
+CANONICAL_RESEARCH = [
+    ("KEY_DIFFERENTIATORS.md", "8 differentiators vs 15 GRC competitors (13 frameworks, 410 EU articles, HMAC-SHA256, BFT, 35K MCP governance, 447 MIT repos, 48-hr deploy, $50B no-MCP)"),
+    ("COMPARE_MATRIX_15_COMPETITORS.md", "15-competitor feature matrix with neutral positioning"),
+    ("EU_AI_ACT_DEADLINE_INTEL.md", "Aug 2 2026 legally-binding deadline pack (9 requirements, 4-tier penalties EUR 35M/7% turnover, 6-week T-55 launch sequence)"),
+    ("EU_AI_ACT_FREE_SCANNER_SPEC.md", "5-question free risk scanner at meok.ai/scan (drives Business-tier funnel)"),
+    ("CVE_INTEL_BRIEF_2026-06-08.md", "3-CVE publication pack (CrowdStrike LogScale CVSS 9.8, Azure AI Foundry CVSS 8.6, Claude Code CVSS 10.0)"),
+    ("MCP_MARKETPLACE_STRATEGY.md", "6-marketplace rollout plan for 6-shipped + 4-specced MEOK MCP servers"),
+    ("SOV3_FINANCIAL_MODEL_2026-2028.md", "8-quarter P&L ($10K → $5M MRR), 6 revenue streams, 4 tiers (INTERNAL ONLY)"),
+    ("SOV3_UNIQUE_CAPABILITIES_MATRIX.md", "10 SOV3-exclusive capabilities mapped to keystone code paths"),
+    ("SOV3_12_DIM_SYNTHESIS.md", "15 competitors × 12 dimensions = 180-cell matrix, 5 deep-dive playbooks"),
+    ("MEOK_API_STRATEGY.md", "10 API gaps, 3-phase roadmap (REST → GraphQL+gRPC+WebSocket → MCP-native)"),
+    ("SHADOW_AI_DETECTION_MCP_SPEC.md", "6 MCP tools, 4 detection sources, 3 deployment modes (~$2.5M Year-1 ARR)"),
+    ("WATCHDOG_CERTIFICATION_PLATFORM_SPEC.md", "3-tier AI safety cert (Foundation/Professional/System), $8.9M Year-2 potential"),
+    ("ONE_TRUST_ESCAPE_TCO_CALC.md", "7-input TCO calculator, 70-95% savings vs OneTrust, migration playbook"),
+    ("28_DAY_BLOG_CALENDAR.md", "Per-day content slots Jun 8 → Jul 11, Jul 4 28-post blitz"),
+    ("RESEARCH_INDEX.md", "The 40-finding synthesis (20 v1 + 20 v2 dossier), canonical source-of-truth index"),
+]
+
 # 8 key differentiators (per [[meok-deep-audit-2026-06-08]] P0-2 + KEY_DIFFERENTIATORS.md + SOV3_UNIQUE_CAPABILITIES_MATRIX.md)
 # Factual, comparative, citation-ready. Per [[RUBRIC_EXTERNAL_COMMS.md]] — no war language.
 # Updated 2026-06-08 with #8 from the 76-server MCP master audit.
@@ -536,6 +559,12 @@ def gen_llms_txt(d: dict) -> str:
 - Global strategy: see the MEOK memory file meok-global-strategy-2026-06-07
 - Crown jewels: see the MEOK memory file meok-crown-jewels-2026-06-07
 - GEO strategy: see the MEOK memory file meok-geo-strategy-2026-06-07
+
+## Canonical research (dossier reified 2026-06-08)
+
+The following 15 docs back the differentiators and FAQ on this landing page. Sourced from `/tmp/kimi_dossier_v2/` (Kimi 8 Jun 2026) and reified into the keystone. All rubric-pass per `RUBRIC_EXTERNAL_COMMS.md` § 8. Full URLs: `{CSOAI_ORG_URL}/meok-compliance-gateway/blob/main/<filename>`
+
+{chr(10).join(f"- **{fname}** — {desc}" for fname, desc in CANONICAL_RESEARCH)}
 """
 
 

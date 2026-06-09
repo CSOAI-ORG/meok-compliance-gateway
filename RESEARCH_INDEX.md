@@ -1,17 +1,17 @@
 # Research Index — MEOK Competitive Intelligence Sources
 
-> **Status**: P3-6, [[meok-deep-audit-2026-06-08]]
-> **Sources**: `/Users/nicholas/Downloads/_kimi_dossier_x/` and `/Users/nicholas/Downloads/sov3_business_model.docx`
+> **Status**: P3-6, [[meok-deep-audit-2026-06-08]] + [[eat-execute-july4-plan-2026-06-08]]
+> **Sources**: `/Users/nicholas/Downloads/_kimi_dossier_x/`, `/Users/nicholas/Downloads/sov3_business_model.docx`, AND `/tmp/kimi_dossier_v2/` (the 2026-06-08 v2 re-bundle)
 > **Use**: when you need to re-verify a claim, update the intelligence, or find the original citation for a public statement.
 
-## The 3 source bundles
+## The 4 source bundles
 
-| Bundle | Path | Size | Format |
-|---|---|---|---|
-| Operation Dragon's Breath | `/Users/nicholas/Downloads/_kimi_dossier_x/sov3_fixed.docx` | 5,160 lines | docx → markdown |
-| SOV3 Business Model | `/Users/nicholas/Downloads/sov3_business_model.docx` | 4,607 lines | docx → markdown |
-| Kimi Agent Competitive Intelligence Dossier | `/Users/nicholas/Downloads/Kimi_Agent_Competitive Intelligence Dossier.zip` | re-zip of `_kimi_dossier_x/` | zip |
-| Converted markdown cache | `/tmp/kimi_dossier_audit/` | ~10K lines | markdown |
+| Bundle | Path | Size | Format | Reified to |
+|---|---|---|---|---|
+| Operation Dragon's Breath | `/Users/nicholas/Downloads/_kimi_dossier_x/sov3_fixed.docx` | 5,160 lines | docx → markdown | RESEARCH_INDEX.md v1 |
+| SOV3 Business Model | `/Users/nicholas/Downloads/sov3_business_model.docx` | 4,607 lines | docx → markdown | RESEARCH_INDEX.md v1 |
+| Kimi Agent Competitive Intelligence Dossier (v1) | `/Users/nicholas/Downloads/Kimi_Agent_Competitive Intelligence Dossier.zip` | re-zip of `_kimi_dossier_x/` | zip | RESEARCH_INDEX.md v1 |
+| **Kimi Dossier v2** (NEW — 8 Jun 2026) | `/tmp/kimi_dossier_v2/` | 35 files, ~30K lines | markdown + docx | 11 canonical docs (this update) |
 
 ## Operation Dragon's Breath — section map
 
@@ -105,6 +105,55 @@
 - **For market sizing** (e.g. in a pitch deck), use findings #3, #4, #5 (the ones with public sources).
 - **For competitive comparison** (e.g. in a sales email), use finding #20 (the public pricing surface) + PRICING.md.
 - **For the keystone's positioning**, use the MCP-governance-gap wedge (insight #4). It's the only claim that's both true AND defensible AND differentiates us.
+
+## Kimi Dossier v2 — reified canonical docs (8 Jun 2026)
+
+The v2 Kimi dossier (`/tmp/kimi_dossier_v2/`, 35 files, ~30K lines) was ingested in three waves (3dad2ee, c00d002, d9ee13f, 969bce2) into the following 11 canonical docs. **All 11 are rubric-pass per `RUBRIC_EXTERNAL_COMMS.md` § 8** (banned-phrase audit returns 0 body-copy hits; hits appear only in explicit "do-NOT-do" meta-sections).
+
+| # | Doc | Lines | Source file | What it is |
+|--:|---|---:|---|---|
+| 1 | `COMPARE_MATRIX_15_COMPETITORS.md` | 193 | `deepdive_feature_matrix.md` | 15-competitor feature matrix, neutral positioning |
+| 2 | `EU_AI_ACT_FREE_SCANNER_SPEC.md` | 128 | `deepdive_feature_matrix.md` § EU AI Act | 5-question risk scanner, drives Business-tier funnel |
+| 3 | `28_DAY_BLOG_CALENDAR.md` | 179 | `sov3_july4_playbook.md` § Phase 1-3 | Per-day content slots, Jul 4 28-post blitz |
+| 4 | `ONE_TRUST_ESCAPE_TCO_CALC.md` | 195 | `sov3_business_model.agent.final.md` § pricing | 7-input TCO calculator, 70-95% savings vs OneTrust |
+| 5 | `WATCHDOG_CERTIFICATION_PLATFORM_SPEC.md` | 181 | `sov3_business_model.agent.final.md` § Watchdog stream | 3-tier cert, $8.9M Year-2 potential |
+| 6 | `SHADOW_AI_DETECTION_MCP_SPEC.md` | 152 | `deepdive_feature_matrix.md` + `sov3_state_of_empire.agent.final.md` | 6 MCP tools, 4 detection sources, ~$2.5M Year-1 ARR |
+| 7 | `SOV3_UNIQUE_CAPABILITIES_MATRIX.md` | 236 | `sov3_tech_blueprint.agent.final.md` | 10 SOV3-exclusive capabilities, 5 critical competitor weaknesses |
+| 8 | `SOV3_FINANCIAL_MODEL_2026-2028.md` | 418 | `sov3_business_model.agent.final.md` | 8-quarter P&L ($10K → $5M MRR), 6 revenue streams, $480M-$2.25B exit |
+| 9 | `SOV3_12_DIM_SYNTHESIS.md` | 337 | `sov3_intel_dim01-12.md` (12-dim research) | 15 competitors × 12 dimensions, 5 deep-dive playbooks, 7 JTBDs |
+| 10 | `MEOK_API_STRATEGY.md` | 179 | `deepdive_api_analysis.md` | 10 API gaps, 3-phase API roadmap, multi-protocol architecture |
+| 11 | `EU_AI_ACT_DEADLINE_INTEL.md` | 200 | `sov3_intel_dim05.md` | Aug 2 2026 deadline pack, 9 requirements, 4-tier penalties, 6-week launch sequence |
+| 12 | `CVE_INTEL_BRIEF_2026-06-08.md` | 220 | `sov3_intel_dim04.md` | 3-CVE publication pack (CrowdStrike / Azure / Claude Code), 5-channel pattern |
+| 13 | `MCP_MARKETPLACE_STRATEGY.md` | 200 | `deepdive_mcp_inventory.md` | 6-marketplace rollout, 7-step submission pattern, 10 first-mover positions |
+
+**Total: 13 canonical docs, ~2,800 lines, ~12,000+ lines of source dossier reified.** The full wave-1+2+3 commit chain on `claude/review-changes-mkbcvckpl5ix3r03-MkKCu`: 3dad2ee → c00d002 → d9ee13f.
+
+### 10 new high-confidence findings (v2 dossier, 8 Jun 2026)
+
+| # | Finding | Source | External citation |
+|--:|---|---|---|
+| 21 | EU AI Act Aug 2 2026 deadline is legally binding (Digital Omnibus trilogue collapsed 28 Apr 2026) | `sov3_intel_dim05.md` | A&O Shearman, Plesner legal analyses |
+| 22 | EU AI Act penalty: EUR 35M or 7% of global annual turnover (prohibited); EUR 15M or 3% (high-risk non-compliance) | `sov3_intel_dim05.md` | Regulation (EU) 2024/1689 |
+| 23 | 4 P0 regulatory deadlines: Aug 2 EU AI Act, Jul 15 China, Q3 ETSI CABCA, Jan 1 2027 Colorado ADMT | `sov3_intel_dim05.md` + 3 other session-shipped P0 specs | EU/China/ETSI/CO state legislation |
+| 24 | MCP ecosystem: 35,000-40,000 unique servers (Glama 32,490 + MCP.so 21,956 + PulseMCP 16,822 + Smithery 2,880) | `deepdive_mcp_inventory.md` | Marketplace public counts (Jun 8 2026) |
+| 25 | 13/15 GRC competitors have zero MCP presence (per the 76-server master audit) | `deepdive_mcp_inventory.md` + audit | Audit-verified |
+| 26 | 30+ MCP CVEs documented; 4 exploit families (STDIO injection, hardening bypass, prompt→config, hidden STDIO via network) | `deepdive_mcp_inventory.md` Part 5 | OX Security May 2026 advisory |
+| 27 | CrowdStrike LogScale path-traversal: CVE-2026-40050 (CVSS 9.8, CRITICAL, unauthenticated) | `sov3_intel_dim04.md` | NIST NVD entry |
+| 28 | Microsoft Azure AI Foundry privilege escalation: CVE-2026-35435 (CVSS 8.6, "Exploitation More Likely" — highest pre-exploitation tier) | `sov3_intel_dim04.md` | Microsoft MSRC |
+| 29 | Claude Code sandbox escape: CVE-2026-25725 (CVSS 10.0 — maximum possible) | `sov3_intel_dim04.md` | Anthropic security advisory |
+| 30 | AI governance market 2026 = $419M, 2035 = $5.9B (CAGR 34%); 78% enterprises unprepared, 83% no AI inventory | `sov3_intel_dim05.md` | Industry analyst consensus |
+| 31 | 48-hour EU AI Act compliance engine: 9 MCP tools map to 9 Articles; 8,000x faster than IBM OpenPages (9 months) | `EU_AI_ACT_DEADLINE_INTEL.md` § 7 | MEOK spec |
+| 32 | OneTrust pricing: $50K-$300K+/yr (median contract $10,514, large enterprise $292K per Forrester TEI) | `sov3_intel_dim05.md` | Forrester TEI + Vendr market data |
+| 33 | Credo AI pricing: $100K+/yr, Forrester Wave Leader, no SMB tier | `sov3_intel_dim05.md` | Forrester Wave + public pricing pages |
+| 34 | OWASP Agentic Top 10 (2026): tool misuse = 64% of findings; capability overprovisioning = universal | `sov3_intel_dim04.md` | OWASP + agent-audit 617 findings |
+| 35 | 8 MEOK differentiators (vs OneTrust/Credo/Cranium/Holistic): 13 frameworks, 410 EU articles, HMAC-SHA256, BFT, only MCP governance, 447 MIT repos, 48-hr deploy, $50B GRC no-MCP | `KEY_DIFFERENTIATORS.md` | Vendor public docs |
+| 36 | SOV3 financial model: 6 revenue streams, 4 tiers, 8-quarter P&L $10K → $5M MRR, $480M-$2.25B exit range | `SOV3_FINANCIAL_MODEL_2026-2028.md` | Internal model (banned externally per `RUBRIC_EXTERNAL_COMMS.md`) |
+| 37 | Watchdog cert: 3-tier (Foundation $99/yr, Professional $499/yr, System $5K-50K/yr), $8.9M Year-2 potential | `WATCHDOG_CERTIFICATION_PLATFORM_SPEC.md` | Internal model |
+| 38 | Shadow AI MCP: 6 tools, 4 detection sources, 3 deployment modes, ~$2.5M Year-1 ARR | `SHADOW_AI_DETECTION_MCP_SPEC.md` | Internal model |
+| 39 | MEOK API strategy: 10 API gaps, 3-phase roadmap (REST Phase 1 → GraphQL+gRPC+WebSocket Phase 2 → MCP-native Phase 3) | `MEOK_API_STRATEGY.md` + `deepdive_api_analysis.md` | Competitor API comparison (1.7-9.0/10 maturity) |
+| 40 | 28-day blog calendar: Jun 8 → Jul 11, Jul 4 28-post blitz, 4 phases colour-coded | `28_DAY_BLOG_CALENDAR.md` + `sov3_july4_playbook.md` | Internal (not for external use) |
+
+**Total findings: 40 (20 v1 + 20 v2).** Findings 36-40 are internal-only per the rubric; findings 21-35 are external-safe.
 
 ## What NOT to do with this research
 
