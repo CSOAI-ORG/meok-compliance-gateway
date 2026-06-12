@@ -202,6 +202,73 @@ Enable per-deployment with env: `X402_ENABLED=1`, `X402_PAY_TO=<Coinbase CDP wal
 description (AWS Marketplace / AgentCore requirement so agents know before calling).
 Rollout: wallet + apply `@paywalled` to the 4–5 highest-value tools per flagship.
 
+## 3 CRITICAL security fixes (2026-06-08 master audit)
+
+> **Source**: `sov3_mcp_master_audit.md` (76 servers, scorecard C+ 56/100).
+> **Reference impl**: `meok-compliance-gateway` is the gold-standard. The 75 flagships copy from it.
+> **Full doc**: `CRITICAL_FIXES_2026-06-08.md`
+
+### Fix #1 — Drop root in Docker (`Dockerfile.glama`)
+
+The Dockerfile must `USER` to a non-root uid before `CMD`. Use the canonical snippet below
+(uid 10001 = `app`, matches the keystone's `Dockerfile:21`):
+
+```dockerfile
+# ... (after pip install, before CMD)
+RUN useradd --create-home --uid 10001 app && chown -R app:app /app
+USER app
+```
+
+Verify with `docker run <image> id` — must show `uid=10001(app)`. Add this to the flagship's
+`.github/workflows/ci.yml` as a hard-fail check.
+
+### Fix #2 — API key permission lockdown (chmod 600 + keyring fallback)
+
+If the flagship reads API keys from disk (most do), use this pattern instead of plain
+`open("~/.meok/api_keys.json")`. Imported into flagship via:
+
+```python
+from meok_secrets import get_api_key, set_api_key
+# Standard library only — no new pip dep
+```
+
+Canonical implementation in `meok-compliance-gateway/meok_secrets.py` (the keystone
+already has this as a dependency-free stdlib module — see `meok_secrets.py` for the
+exact code, which lives in the keystone and is what every flagship copies).
+
+Pattern: `keyring` (cross-platform: macOS Keychain / Linux Secret Service / Windows
+Credential Manager) → `chmod 600` file fallback → `PermissionError` if file is
+world/group-readable. Add a CI check: `os.stat(path).st_mode & 0o077 == 0`.
+
+### Fix #3 — `MEOK_ATTESTATION_KEY` secret manager (NOT env var)
+
+**This is the load-bearing fix.** The HMAC-SHA256 signing key for compliance attestations
+must NEVER live in an env var: `printenv` shows it, container introspection shows it, any
+subprocess inherits it. An attacker who reads it can forge any compliance attestation
+(breaks Differentiation #3 in `KEY_DIFFERENTIATORS.md`).
+
+Reference impl in `meok-compliance-gateway/meok_x402.py:66-126`:
+```python
+def _resolve_attestation_key() -> bytes:
+    # 1. AWS Secrets Manager (production)
+    # 2. OS keyring (dev)
+    # 3. Env var (dev only, with loud warning)
+    # 4. Fail closed — refuse to start
+```
+
+Copy the exact function into every flagship that issues attestations. The 90-day rotation
+schedule is fleet-wide (Nick-gated, requires G5 cloud account from launch runbook).
+
+### Fleet rollout (Jun 9 - Jul 3, 1 PR per week per fix)
+
+| Week | Fix | Per-flagship PR | Verification |
+|---|---|---|---|
+| Jun 9-13 | #1 root Docker | 1 line in `Dockerfile.glama` | `docker run <image> id` shows non-root |
+| Jun 16-20 | #2 keyring wrapper | new `meok_secrets.py` (stdlib) | CI check `find -name '*.key' -not -perm 600` |
+| Jun 23-27 | #3 secret manager | new `_resolve_attestation_key()` in flagship | env-only fails in production |
+
+All 3 are mechanical copies of the keystone. Total fleet effort: ~3 hours across 75 flagships.
+
 ## Reference implementations
 - `meok-compliance-gateway` — the gateway shim + `meok_x402.py` (this template's source of truth)
 - `eu-ai-act-compliance-mcp` — gold-standard compliance flagship (server.py + tests + smithery + Dockerfile.glama)

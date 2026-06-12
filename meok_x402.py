@@ -48,6 +48,81 @@ log = logging.getLogger("meok.x402")
 # rate-limiters consult this so paying agents bypass the free-tier daily cap.
 _paid_call: contextvars.ContextVar[bool] = contextvars.ContextVar("meok_x402_paid", default=False)
 
+# ── Secret resolution for the (future) MEOK_ATTESTATION_KEY ─────────────────
+# Per the SOV3 master audit (CRITICAL #3, sov3_mcp_master_audit.docx 2026-06-08),
+# the HMAC-SHA256 signing key for compliance attestations MUST NEVER live in an
+# env var: `printenv` shows it, container introspection shows it, any subprocess
+# inherits it. An attacker who reads it can forge any compliance attestation,
+# which breaks the entire attestation chain.
+#
+# Resolution order: AWS Secrets Manager → meok_secrets (keyring → file, with
+# chmod 600) → env (dev only, warns) → fail closed. Env-only is rejected in
+# production (`MEOK_ENV=production`). See CRITICAL_FIXES_2026-06-08.md Fix #3
+# for the full rationale.
+_ATTESTATION_KEYRING_USER = "attestation-key"
+_ATTESTATION_AWS_SECRET_ID = "meok/attestation-key"
+
+
+def _resolve_attestation_key() -> bytes:
+    """Read the HMAC-SHA256 signing key from a secret store. Never env-only.
+
+    Order:
+      1. AWS Secrets Manager (production).
+      2. meok_secrets (keyring → file-with-chmod-600; ref impl of Fix #2).
+      3. MEOK_ATTESTATION_KEY env var — only in dev, with a loud warning.
+      4. Otherwise: fail closed (refuse to start an attestation issuer).
+    """
+    # 1. AWS Secrets Manager (production path)
+    try:
+        import boto3  # type: ignore
+        client = boto3.client("secretsmanager")
+        resp = client.get_secret_value(SecretId=_ATTESTATION_AWS_SECRET_ID)
+        val = resp.get("SecretString")
+        if val:
+            return val.encode()
+    except ImportError:
+        pass  # boto3 not installed → skip to meok_secrets
+    except Exception as exc:  # noqa: BLE001
+        log.debug("AWS Secrets Manager lookup failed (will try meok_secrets): %r", exc)
+
+    # 2. meok_secrets (the keystone's audited secret-store wrapper)
+    try:
+        from meok_secrets import get_secret  # local module, stdlib-only
+        val = get_secret(_ATTESTATION_KEYRING_USER)
+        if val:
+            return val.encode()
+    except ImportError:
+        pass  # module not on path (e.g. running tests in isolation)
+    except Exception as exc:  # noqa: BLE001
+        log.debug("meok_secrets lookup failed (will try env): %r", exc)
+
+    # 3. Env var fallback (dev/test ONLY)
+    val = os.environ.get("MEOK_ATTESTATION_KEY")
+    if val:
+        env_name = os.environ.get("MEOK_ENV", "development").lower()
+        if env_name == "production":
+            raise RuntimeError(
+                "MEOK_ATTESTATION_KEY was set in the environment, but MEOK_ENV=production. "
+                "Per the SOV3 master audit (CRITICAL #3) the HMAC signing key must NOT be "
+                "in an env var in production. Use AWS Secrets Manager (id="
+                f"{_ATTESTATION_AWS_SECRET_ID!r}) or meok_secrets (name={_ATTESTATION_KEYRING_USER!r})."
+            )
+        log.warning(
+            "MEOK_ATTESTATION_KEY read from env var in dev mode. "
+            "This is the audit-flagged CRITICAL #3 pattern — move to meok_secrets / "
+            "AWS Secrets Manager before MEOK_ENV=production."
+        )
+        return val.encode()
+
+    # 4. Fail closed — never default to anything
+    raise RuntimeError(
+        "MEOK_ATTESTATION_KEY not found in AWS Secrets Manager, meok_secrets, or env. "
+        "Refusing to start attestation signing to prevent forgery. "
+        f"Set it via: aws secretsmanager create-secret --name {_ATTESTATION_AWS_SECRET_ID} "
+        f"--secret-string <32-bytes-base64>  OR  "
+        f"python -c \"import meok_secrets; meok_secrets.set_secret({_ATTESTATION_KEYRING_USER!r}, '<key>')\""
+    )
+
 
 def is_paid_call() -> bool:
     """True if the current tool invocation is backed by a verified x402 payment."""

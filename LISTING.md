@@ -12,6 +12,14 @@
 > (2-week buffer). Tracked in issue #1.
 > Source: https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/
 
+## Why this listing (3 differentiators, marketplace-relevant)
+
+- **410 verbatim EU AI Act articles** as a parseable source-of-truth (Credo AI / Holistic AI ship interpretive summaries; MEOK ships the text). Powered by `ghcr.io/csoai-org/eu-ai-act-compliance-mcp` (OpenSSF 81.6/100).
+- **First governance layer for 35,000+ MCP servers** — 13 of 15 GRC vendors have zero MCP presence. The keystone wrapper turns any MCP server into a compliance-checked one.
+- **48-hour zero-config deployment** for the EU AI Act wedge (vs 2.5–9 months for OneTrust / Vanta / Drata / Holistic AI).
+
+Full source + per-surface copy: [KEY_DIFFERENTIATORS.md](./KEY_DIFFERENTIATORS.md). External-comms rubric: [RUBRIC_EXTERNAL_COMMS.md](./RUBRIC_EXTERNAL_COMMS.md).
+
 ## What's in this dir
 - `http_server.py` — generic streamable-HTTP entrypoint (imports the installed `server` module, serves `/mcp` on `0.0.0.0:$PORT`). Also exposes `GET /healthz` and `GET /.well-known/oauth-protected-resource`. ✅ tested HTTP 200.
 - `Dockerfile` — parameterized by `--build-arg PKG=<pypi-name>`; pip-installs `requirements-gateway.txt` + the server.
