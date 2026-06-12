@@ -1,86 +1,53 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "CSOAI-ORG/meok-compliance-gateway",
-  "title": "MEOK Compliance Gateway",
-  "version": "1.0.0",
-  "description": "MEOK Compliance Gateway — streamable-HTTP gateway for the CSOAI-ORG 28-hive MCP governance mesh. 13 unified governance frameworks (EU AI Act, GDPR, HIPAA, DORA, NIS2, CRA, CSRD, ESG, ISO 42001, ISO 27001, SOC 2, NIST AI RMF, supply-chain) + HMAC-SHA256 attestation chain + x402 USDC paywall. Built for cloud marketplaces (AWS Bedrock AgentCore, Google Cloud Run, Azure Container Apps, Smithery, MCP.so, Glama, PulseMCP). First unified AI governance MCP — 13/15 GRC vendors have no MCP exposure (per sov3-mcp-master-audit-2026-06-08).",
-  "websiteUrl": "https://meok.ai",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/server.schema.json",
+  "name": "io.github.CSOAI-ORG/meok-compliance-gateway",
+  "description": "MEOK Compliance Gateway — the keystone of the MEOK / CSOAI / SOV3 fleet. Ed25519 sigils + x402 per-call USDC billing + 6 MCP tools (4 free, 2 paywalled). Built by MEOK AI Labs.",
+  "version": "0.2.0",
+  "status": "active",
   "repository": {
     "type": "git",
-    "url": "https://github.com/CSOAI-ORG/meok-compliance-gateway",
-    "source": "https://github.com/CSOAI-ORG/meok-compliance-gateway"
+    "url": "https://github.com/CSOAI-ORG/meok-compliance-gateway"
   },
-  "icons": [
+  "homepage": "https://meok.ai",
+  "author": {
+    "name": "MEOK AI Labs",
+    "email": "hello@meok.ai",
+    "url": "https://meok.ai"
+  },
+  "license": "MIT",
+  "categories": ["ai-governance", "compliance", "security", "audit", "ed25519", "x402"],
+  "tools": [
     {
-      "src": "https://raw.githubusercontent.com/CSOAI-ORG/meok-compliance-gateway/main/assets/keystone-icon.svg",
-      "mimeType": "image/svg+xml",
-      "sizes": ["256x256"],
-      "theme": "dark"
+      "name": "list_experts",
+      "description": "List the 14 OpenScore safety experts. Free, top-of-funnel, 5 calls/day per caller."
+    },
+    {
+      "name": "spending_report",
+      "description": "Return the keystone's x402 spending report. Free observability, 20 calls/day per caller."
+    },
+    {
+      "name": "audit_anchor",
+      "description": "Return the keystone's tamper-evident audit-anchor chain tail + head. Free observability."
+    },
+    {
+      "name": "health",
+      "description": "Keystone health + version info. Free, no payment required."
+    },
+    {
+      "name": "sign_receipt",
+      "description": "COST WARNING: $0.05 per call — Sign a SHA-256 hash and return a Signet receipt. x402 USDC."
+    },
+    {
+      "name": "verify_receipt",
+      "description": "COST WARNING: $0.05 per call — Verify a Signet receipt. x402 USDC."
     }
   ],
-  "packages": [
-    {
-      "registryType": "oci",
-      "identifier": "ghcr.io/csoai-org/meok-compliance-gateway",
-      "version": "1.0.0",
-      "transport": {
-        "type": "streamable-http"
-      },
-      "environmentVariables": [
-        {
-          "name": "MEOK_ATTESTATION_KEY",
-          "description": "HMAC-SHA256 attestation key. Resolved at startup from AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault, stdlib keyring, or chmod-600 file fallback. Required — the gateway refuses to start without it (per CRITICAL_FIXES_2026-06-08.md Fix #3).",
-          "isRequired": true,
-          "isSecret": true
-        },
-        {
-          "name": "MEOK_X402_WALLET",
-          "description": "Coinbase CDP wallet address for x402 USDC micro-settlement receipts. Free tier (100 calls/month) works without this; Team and Business tiers require it.",
-          "isRequired": false,
-          "isSecret": false
-        }
-      ]
-    }
-  ],
-  "remotes": [
-    {
-      "type": "streamable-http",
-      "url": "https://gateway.meok.ai/mcp"
-    }
-  ],
-  "_meta": {
-    "io.modelcontextprotocol.registry/publisher-provided": {
-      "category": "ai-governance",
-      "subcategories": [
-        "compliance",
-        "audit",
-        "regulatory-tech",
-        "mcp-infrastructure"
-      ],
-      "tier": "flagship",
-      "openSsfScorecard": "81.6/100",
-      "frameworks": [
-        "EU AI Act",
-        "GDPR",
-        "HIPAA",
-        "DORA",
-        "NIS2",
-        "CRA",
-        "CSRD",
-        "ESG",
-        "ISO 42001",
-        "ISO 27001",
-        "SOC 2",
-        "NIST AI RMF",
-        "supply-chain"
-      ],
-      "regulatoryDeadlines": [
-        "EU AI Act 2026-08-02 (T-55)",
-        "China Generative AI 2026-07-15 (T-37)",
-        "ETSI TS 104 008 Q3 2026 (T-90+)",
-        "Colorado ADMT 2027-01-01 (T-207)"
-      ],
-      "transportVersions": ["MCP 1.27.2", "MCP 2026-07-28 draft compatible"]
-    }
+  "transports": ["streamable-http", "stdio"],
+  "deployment": {
+    "type": "container",
+    "image": "ghcr.io/csoai-org/meok-compliance-gateway:0.2.0",
+    "command": "python http_server.py",
+    "port": 8000,
+    "healthcheck": "GET /healthz"
   }
 }
