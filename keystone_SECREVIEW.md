@@ -18,7 +18,7 @@
 | 8 | **Token-Permissions** | 10/10 | `build-push.yml` declares `permissions: { contents: read, packages: write }` (scoped). `scorecard.yml` declares `permissions: read-all` then narrows per-job (`id-token: write, contents: read, pull-requests: read`). `test-gateway.yml` has no explicit `permissions:` block (relies on default — minor, not a fail). | Optional: add `permissions: {}` to `test-gateway.yml` for consistency. |
 | 9 | **Pinned-Dependencies** | 10/10 | `requirements-gateway.txt`: `mcp==1.27.2`, `uvicorn[standard]==0.48.0` (exact pins). `constraints.txt` mirrors as `mcp==1.27.2`, `uvicorn==0.48.0`. Used in CI as `pip install -c constraints.txt -r requirements-gateway.txt eu-ai-act-compliance-mcp==1.8.1`. | None — exemplary. |
 | 10 | **License** | 10/10 | `LICENSE` (1081 bytes) → base64 decodes to MIT license text. GitHub API confirms `spdx_id: MIT`. | None. |
-| 11 | **Fuzzing** | 0/10 | No `fuzz/` dir, no oss-fuzz integration, no `hypothesis` property tests. `http_server.py` parses `Host` header + JSON RPC payloads — both are excellent fuzz targets. | Add `atheris` or `hypothesis` smoke for the JSON-RPC dispatcher. |
+| 11 | **Fuzzing** | 0/10 | No `fuzz/` dir, no oss-fuzz integration, no `hypothesis` property tests. `http_server.py` parses `Host` header + JSON RPC payloads — both are excellent fuzz targets. | Add `atheris` or `hypothesis` smoke for the JSON-RPC dispatcher. Targeted reference: **OpenClaw CVE-2026-25253** (CVSS 8.8, NVD) — the cross-site WebSocket hijack class that any agent-gateway-with-Host-header-parsing is exposed to. The keystone's `http_server.py` shares the attack surface (Host header + JSON RPC dispatch). |
 | 12 | **Signed-Releases** | 0/10 | `gh api repos/.../releases` → `[]` (no releases at all). No `cosign`, no `sigstore`, no GPG signed tags. `build-push.yml` pushes GHCR images with `provenance: false`. | Add `cosign sign ghcr.io/csoai-org/${{ matrix.flagship }}-mcp@${{ github.sha }}` step. |
 | 13 | **Security-Policy** | 10/10 | `SECURITY.md` (1627 bytes) — supported versions table, `security@meok.ai` reporting email with 48h SLA, explicit scope (the `http_server.py` shim, Dockerfile, `/mcp` + `/healthz` + OAuth routes), out-of-scope carve-outs, and hardening notes for the Cloud Run DNS-rebinding decision. | None — exemplary. |
 | 14 | **Dependency-Configuration** | 0/10 | No `.github/dependabot.yml` in the keystone (it would scope to the keystone's own 2 deps). | Add one — trivially small, big payoff. |
@@ -55,3 +55,24 @@
 5. Add `tests/test_fuzz.py` using `hypothesis` for JSON-RPC. 30 min.
 
 After these five fixes, projected score: **~7.5/10** (green).
+
+## Adversarial testing reference: OpenClaw CVE-2026-25253
+
+**CVE**: [CVE-2026-25253](https://nvd.nist.gov/vuln/detail/CVE-2026-25253) (HIGH, CVSS 8.8, published 2026-02-01)
+**Affected**: OpenClaw < 2026.1.29 (the "clawdbot" / "Moltbot" AI agent platform)
+**CWE**: CWE-669 (Incorrect Resource Transfer Between Spheres)
+**Class**: Cross-site WebSocket hijack via `gatewayUrl` query string + auto-WebSocket-without-prompt + token exfil → sandbox disable → RCE via `node.invoke`
+**Public PoC**: [EQSTLab/CVE-2026-25253](https://github.com/EQSTLab/CVE-2026-25253) (tested against OpenClaw 2026.1.24-1)
+
+**Why it matters for us**: The keystone's `http_server.py` parses the `Host` header and serves JSON-RPC over streamable-HTTP. The OpenClaw attack pattern (untrusted query-string → outbound connection with auth token) maps to:
+
+  1. **DNS-rebinding**: an attacker controls `evil.com`, points it at `127.0.0.1`, the keystone sees `Host: meok.ai` (cached) but the request came from a browser. The keystone has documented platform-proxy mitigation in `SECURITY.md`; CVE-2026-25253 is a more general "any agent gateway that trusts Host headers" lesson.
+  2. **JSON-RPC dispatcher**: a malformed `_meta["x402/payment"]` payload could trigger the same "auto-WebSocket-without-prompt" pattern. The `meok_x402.py:_extract_meta` path is the exact equivalent of OpenClaw's `gatewayUrl` read.
+
+**Action items (carry into Stage 8 hardening, not P0-A)**:
+
+- Add a `hypothesis` smoke test for `meok_x402._extract_meta()` that asserts no outbound connection is ever opened (regression guard against the CVE-2026-25253 class).
+- Add a `Host` header fuzz harness: random / non-ASCII / very-long / with-port-only / with-IP-only — the keystone should always 400.
+- Cite this CVE in `SECURITY.md` under "Known attack patterns we test against" so the next security review sees the explicit reference.
+
+These are not in this session's scope (Stage 8 is the dedicated fuzz/SAST/hardening session). The reference is captured here so the next session can pick it up without re-deriving.

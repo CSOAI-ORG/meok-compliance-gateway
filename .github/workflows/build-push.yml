@@ -57,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
@@ -86,7 +86,7 @@ jobs:
 
       - name: Build and push ${{ matrix.flagship }}
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -143,7 +143,7 @@ jobs:
           # in GitHub Packages UI — see top-of-file comment).
 
       - name: Vulnerability scan (Trivy)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ghcr.io/csoai-org/${{ matrix.flagship }}-mcp:${{ github.sha }}
           format: sarif

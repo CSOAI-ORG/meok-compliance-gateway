@@ -1,0 +1,57 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: eu-ai-act-mcp
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "10"
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/memory: "1Gi"
+        run.googleapis.com/cpu: "1"
+    spec:
+      containerConcurrency: 100
+      timeoutSeconds: 300
+      containers:
+        - image: ghcr.io/csoai-org/eu-ai-act-mcp:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: PORT
+              value: "8000"
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: X402_ENABLED
+              value: "1"
+            - name: X402_PAY_TO
+              valueFrom:
+                secretKeyRef:
+                  name: x402-wallet
+                  key: pay-to
+            - name: X402_NETWORK
+              value: "eip155:8453"
+            - name: X402_FACILITATOR_URL
+              value: "https://x402.org/facilitator"
+            - name: PUBLIC_HOST
+              value: "eu-ai-act-mcp-csoai.org"
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            periodSeconds: 30
+            failureThreshold: 3

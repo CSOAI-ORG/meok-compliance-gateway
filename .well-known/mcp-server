@@ -1,10 +1,10 @@
 {
   "name": "meok-compliance-gateway",
-  "description": "MCP gateway for EU AI Act, NIS2, DORA, CRA, GDPR, HIPAA, SOC2, CSRD compliance. Streamable HTTP shim with x402 per-call monetization.",
-  "version": "1.8.1",
+  "description": "MEOK Compliance Gateway — Streamable-HTTP MCP for EU AI Act, NIS2, DORA, CRA, GDPR, HIPAA, SOC2, CSRD compliance with x402 per-call monetization.",
+  "version": "1.0.0",
   "protocol_version": "2025-03-26",
   "vendor": {
-    "name": "MEOK AI LTD",
+    "name": "MEOK AI Labs",
     "url": "https://meok.ai",
     "email": "nicholas@meok.ai"
   },
@@ -18,26 +18,41 @@
   },
   "tools": [
     {
-      "name": "healthz",
-      "description": "Gateway health check endpoint",
+      "name": "quick_scan",
+      "description": "Run a compliance scan against a system name or description",
+      "parameters": {"type": "object", "properties": {"system": {"type": "string"}}}
+    },
+    {
+      "name": "deadline_check",
+      "description": "Check regulatory deadlines for a given framework",
+      "parameters": {"type": "object", "properties": {"framework": {"type": "string"}}}
+    },
+    {
+      "name": "framework_scan",
+      "description": "Generate a compliance assessment for a framework",
+      "parameters": {"type": "object", "properties": {"framework": {"type": "string", "system": {"type": "string"}}}
+    },
+    {
+      "name": "expert_list",
+      "description": "List the expert models available for compliance tasks",
       "parameters": {}
     },
     {
-      "name": "mcp",
-      "description": "MCP streamable HTTP endpoint for compliance tools",
-      "parameters": {}
+      "name": "audit_anchor",
+      "description": "Create an auditable anchor point with SHA-256 hash",
+      "parameters": {"type": "object", "properties": {"data": {"type": "object"}}}
     }
   ],
   "transports": [
     {
-      "type": "http",
-      "url": "https://meok.ai/mcp",
+      "type": "streamable-http",
+      "url": "https://gateway.meok.ai/mcp",
       "content_type": "application/json"
     }
   ],
   "authentication": {
     "type": "none",
-    "description": "Public gateway; x402 payments required for paid tools only"
+    "description": "Public gateway; x402 payments required for paywalled tools only"
   },
   "x402": {
     "enabled": true,
@@ -46,7 +61,7 @@
     "network": "base"
   },
   "compliance": {
-    "frameworks": ["EU AI Act", "NIS2", "DORA", "CRA", "GDPR", "HIPAA", "SOC2", "CSRD"],
-    "certifications": ["ISO 42001"]
+    "frameworks": ["EU AI Act", "NIS2", "DORA", "CRA", "GDPR", "HIPAA", "SOC2", "CSRD", "ISO 42001", "ISO 27001", "NIST AI RMF", "supply-chain"],
+    "certifications": ["ISO 42001", "SOC2"]
   }
 }

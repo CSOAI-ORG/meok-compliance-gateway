@@ -1,0 +1,41 @@
+# MEOK Compliance Gateway — keystone streamable-HTTP container
+# Build: docker build -f Dockerfile.keystone -t meok-compliance-gateway:0.2.0 .
+FROM python:3.11-slim
+
+ENV PORT=8000 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
+WORKDIR /app
+
+# Install the keystone's runtime deps
+COPY requirements-gateway.txt /app/requirements-gateway.txt
+RUN pip install --no-cache-dir -r /app/requirements-gateway.txt
+
+# Copy the keystone source
+COPY server.py /app/server.py
+COPY http_server.py /app/http_server.py
+COPY keystone_static_routes.py /app/keystone_static_routes.py
+COPY meok_crown.py /app/meok_crown.py
+COPY meok_x402.py /app/meok_x402.py
+COPY meok_horus.py /app/meok_horus.py
+COPY meok_secrets.py /app/meok_secrets.py
+COPY meok_rate_limit.py /app/meok_rate_limit.py
+COPY pyproject.toml /app/pyproject.toml
+
+# Registry discoverability files (so Smithery/Glama/Registry see the keystone)
+COPY .mcp.json /app/.mcp.json
+COPY server.json /app/server.json
+COPY llms.txt /app/llms.txt
+COPY README.md /app/README.md
+COPY LICENSE /app/LICENSE
+COPY AGENTS.md /app/AGENTS.md
+
+# Unprivileged user (Cloud Run / AgentCore / Docker MCP Catalog requirement)
+RUN useradd --create-home --uid 10001 app && chown -R app:app /app
+USER app
+
+EXPOSE 8000
+
+# /healthz + /llms.txt + /.mcp.json + /server.json all served by http_server.py + keystone_static_routes.py
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD python -c "import os,sys,urllib.request; r=urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2); sys.exit(0 if r.status==200 else 1)"
+
+CMD ["python", "http_server.py"]

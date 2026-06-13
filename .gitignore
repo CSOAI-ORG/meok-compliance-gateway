@@ -19,22 +19,37 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# Virtual environments
+.venv/
 venv/
-ENV/
 env/
-.venv
+ENV/
 
-# IDE
+# Test/Coverage
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Editors
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
-
-# macOS
 .DS_Store
 
-# Agent/memory
-.claude/scheduled_tasks.lock
+# Env/secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Agent worktrees (other concurrent agent's territory — DO NOT commit)
+agentaudit/
+pypi-squat/

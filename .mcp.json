@@ -1,0 +1,79 @@
+{
+  "name": "meok-compliance-gateway",
+  "description": "MEOK Compliance Gateway — the keystone of the CSOAI-ORG fleet. Streamable-HTTP at /mcp with Ed25519 sigils, x402 per-call USDC billing, and audit-anchor chains. 6 tools: 4 free observability + 2 paywalled. Built by MEOK AI Labs.",
+  "version": "0.2.0",
+  "homepage": "https://github.com/CSOAI-ORG/meok-compliance-gateway",
+  "license": "MIT",
+  "author": "MEOK AI Labs",
+  "tools": [
+    {
+      "name": "list_experts",
+      "description": "List the 14 OpenScore safety experts. Free, top-of-funnel, 5 calls/day per caller.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "description": "Optional: filter to one of compliance/security/governance/monetization/verification"
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "spending_report",
+      "description": "Return the keystone's x402 spending report (free observability, 20 calls/day per caller).",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "audit_anchor",
+      "description": "Return the keystone's tamper-evident audit-anchor chain tail + head (free observability).",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "health",
+      "description": "Keystone health + version info (free, no payment required).",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "sign_receipt",
+      "description": "COST WARNING: $0.05 per call — Sign a SHA-256 hash and return a Signet receipt.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "payload_hex": {
+            "type": "string",
+            "description": "Hex-encoded SHA-256 hash to sign"
+          }
+        },
+        "required": ["payload_hex"]
+      }
+    },
+    {
+      "name": "verify_receipt",
+      "description": "COST WARNING: $0.05 per call — Verify a Signet receipt by id and re-compute the HMAC.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "attestation_id": {
+            "type": "string",
+            "description": "The receipt ID returned by sign_receipt"
+          }
+        },
+        "required": ["attestation_id"]
+      }
+    }
+  ]
+}

@@ -2,9 +2,9 @@ name: test-gateway
 
 on:
   push:
-    branches: [main]
+    branches: [main, "feat/**"]
   pull_request:
-    branches: [main]
+    branches: [main, "feat/**"]
 
 jobs:
   smoke:
@@ -19,31 +19,38 @@ jobs:
           python-version: "3.11"
 
       - name: Install gateway runtime
+        # requirements-gateway.txt pulls in `mcp==1.27.2` (exact pin per
+        # AGENTS.md), `uvicorn`, `starlette`, etc. No more hand-rolled
+        # /tmp/stub/server.py — the repo now ships a real server.py with
+        # 4 free + 2 paywalled tools, and the smoke job tests that file
+        # directly via tests/test_keystone_server.py.
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-gateway.txt
-          # Install a stub `server` module so http_server.py imports cleanly in CI.
-          # Production builds get the real `server` from the flagship PKG via Docker.
 
-      - name: Lint http_server.py
+      - name: Lint the keystone
+        # py_compile catches syntax errors at push time. http_server.py is
+        # the production entrypoint; server.py is the keystone's tool
+        # surface that http_server.py imports. The substrate modules
+        # meok_x402 + meok_rate_limit must also parse.
         run: |
-          python -m py_compile http_server.py
-          # Compile-only check. The previous `test.yml` used `py_compile server.py`,
-          # which is N/A here — the real entrypoint is http_server.py.
+          python -m py_compile http_server.py server.py meok_x402.py meok_rate_limit.py
+          echo "py_compile: all four files OK"
 
-      - name: Import smoke
+      - name: Run the keystone server tests
+        # tests/test_keystone_server.py imports `server` directly (via
+        # the fresh_server fixture) and asserts on the 6 registered tools,
+        # free-tier rate limit, audit anchor, and payer_hint shapes. 28
+        # tests; no stub required.
+        env:
+          # MEOK_ATTESTATION_KEY is read from env in dev mode (with a
+          # warning per CRITICAL_FIXES_2026-06-08 #3). A 64-hex-char
+          # value is a stable 32-byte HMAC key — same one sign_receipt
+          # and verify_receipt use, so the round-trip in
+          # test_verify_receipt_passthrough_when_disabled works.
+          MEOK_ATTESTATION_KEY: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
         run: |
-          # Stub the imported `server` module so the import in http_server.py succeeds.
-          mkdir -p /tmp/stub && cat > /tmp/stub/server.py <<'PY'
-          class _MCP:
-              settings = type("S", (), {"host": "", "port": 0, "transport_security": None})()
-              def custom_route(self, *a, **k):
-                  def deco(fn): return fn
-                  return deco
-              def run(self, *a, **k): pass
-          mcp = _MCP()
-          PY
-          PYTHONPATH=/tmp/stub python -c "import importlib.util, sys; spec=importlib.util.spec_from_file_location('http_server','http_server.py'); m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m); print('import OK')"
+          pytest tests/test_keystone_server.py -v
 
       - name: x402 paid-tool helper tests
         run: |
@@ -52,6 +59,15 @@ jobs:
           # hypothesis powers tests/test_x402_properties.py (derandomized fuzz).
           pip install x402 pytest hypothesis
           pytest tests/test_x402.py tests/test_x402_properties.py -v
+
+      - name: Verify keystone listings are up to date
+        # scripts/gen-keystone-payload.py generates the marketplace listings
+        # (Glama / Smithery / MCP.so / Pulse / x402-Bazaar) from the keystone's
+        # tool surface in server.py. --check regenerates into a temp dir and
+        # diffs against the committed output. Fails if anyone added a tool to
+        # server.py but forgot to regenerate the listings.
+        run: |
+          python3 scripts/gen-keystone-payload.py --check
 
   e2e:
     # Real end-to-end: install a flagship PKG, boot the ACTUAL gateway, and drive
@@ -69,9 +85,20 @@ jobs:
           python-version: "3.11"
 
       - name: Install gateway runtime + a real flagship
+        # Pin the flagship to the gold-standard version (1.8.1 as of 2026-06-03).
+        # Bump deliberately when the upstream release is tested against the gateway.
+        # Without the pin, a new flagship release can break the gateway's import
+        # chain (mcp SDK / FastMCP API surface) without warning.
+        #
+        # Note: the repo's own `server.py` (the keystone, 4 free + 2 paywalled
+        # tools) takes precedence over the installed flagship's `server` module
+        # by CWD-import resolution. The PKG install is therefore a SANITY CHECK
+        # that the keystone's mcp API surface is compatible with the flagship's
+        # setuptools convention (entry points, package metadata). The actual
+        # boot below drives the keystone's server, which is what we ship.
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-gateway.txt eu-ai-act-compliance-mcp
+          pip install -c constraints.txt -r requirements-gateway.txt eu-ai-act-compliance-mcp==1.8.1
 
       - name: Boot gateway + run real e2e (initialize + tools/list + /healthz)
         run: |
@@ -97,3 +124,85 @@ jobs:
       - name: Stop gateway
         if: always()
         run: kill "$(cat /tmp/gateway.pid)" 2>/dev/null || true
+
+  x402-rail-smoke:
+    # Guards the revenue rail against future x402 SDK upgrades. The
+    # `meok_x402.paywalled` wrapper accepts both v0 and v1 PaymentPayload
+    # shapes; if a future SDK drops one (or a pin bump breaks the
+    # `model_validate` path), this job fails before the change can merge.
+    # Runs in --skip-settle mode by default — no facilitator, no wallet,
+    # no network. The point is the substrate shape, not the network call.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install gateway runtime + x402[evm] + eth_account
+        # The offline v1 sign step uses ExactEvmScheme, which needs the
+        # x402[evm] extra (pulls in web3). Base x402 alone isn't enough.
+        # hypothesis is required by tests/test_x402_properties.py (fuzz).
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-gateway.txt 'x402[evm]' eth-account pytest hypothesis
+
+      - name: Boot + challenge roundtrip
+        # The smoke imports `server` (the keystone module) and drives the
+        # exact same code path that an MCP client would: tool call without
+        # payment → PaymentRequired challenge → assert shape.
+        env:
+          X402_ENABLED: "1"
+          X402_PAY_TO: "0x1234567890123456789012345678901234567890"
+          X402_NETWORK: "eip155:84532"
+          MEOK_ATTESTATION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        run: |
+          python scripts/test_x402_settlement.py --skip-settle
+
+      - name: Sign a USDC payment (offline, no facilitator)
+        # Proves the SDK's `register_v1` + `ExactEvmScheme` path produces
+        # a v1 PaymentPayload the keystone's `paywalled` wrapper can
+        # match. Uses a throwaway test key; no USDC, no facilitator.
+        env:
+          X402_ENABLED: "1"
+          X402_PAY_TO: "0x1234567890123456789012345678901234567890"
+          X402_NETWORK: "eip155:84532"
+          MEOK_ATTESTATION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        run: |
+          python3 - <<'PY'
+          import os, sys, json
+          sys.path.insert(0, '.')
+          from eth_account import Account
+          from x402.client import x402ClientSync
+          from x402.mechanisms.evm.exact.client import ExactEvmScheme
+          from x402.schemas import PaymentRequired, ResourceInfo, PaymentRequirements
+          acct = Account.create()
+          client = x402ClientSync()
+          client.register_v1(os.environ['X402_NETWORK'], ExactEvmScheme(acct))
+          pr = PaymentRequired(
+              x402_version=1, error='Payment required',
+              resource=ResourceInfo(url='mcp://tool/sign_receipt', service_name='meok'),
+              accepts=[PaymentRequirements(
+                  scheme='exact', network=os.environ['X402_NETWORK'],
+                  asset='0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+                  amount='50000', pay_to=os.environ['X402_PAY_TO'], max_timeout_seconds=300,
+              )],
+          )
+          signed = client.create_payment_payload(pr)
+          # Assert v1 shape
+          assert hasattr(signed, 'scheme') and signed.scheme == 'exact', f'not v1: {type(signed).__name__}'
+          assert hasattr(signed, 'payload') and 'authorization' in signed.payload, 'no authorization'
+          # Re-validate on the keystone side
+          from meok_x402 import paywalled
+          from x402.schemas import PaymentPayload, PaymentPayloadV1
+          wire = signed.model_dump(by_alias=True, mode='json')
+          recon = PaymentPayloadV1.model_validate(wire)
+          print(f'OK: signed {type(signed).__name__}, keystone accepted v1 wire')
+          PY
+
+      - name: Pytest
+        # 15/15 must stay green. If a future change breaks any test, fail.
+        run: pytest tests/ -q
