@@ -1,0 +1,33 @@
+# eu-ai-act-compliance-mcp
+> EU AI Act Compliance Eu Ai Act (Regulation (EU) 2024/1689) compliance checking, risk classification, and documentation generation. By MEOK AI Labs.
+
+## Install
+pip install eu-ai-act-compliance-mcp
+
+## Auth
+- Free tier: 100 calls/month, no API key needed
+- Pro tier: unlimited, set MEOK_API_KEY env var
+
+## Tools
+
+### quick_scan
+Instant compliance check from a system description. No API key required.
+- `system` (str): One-sentence AI system description
+- Returns: compliance_status, top_obligations
+
+### deadline_check
+Regulatory deadlines with days remaining.
+- Returns: List of dates with days_remaining
+
+### framework_scan
+Detailed compliance assessment.
+- `framework` (str, required): EU or other framework
+- `system` (str, required): System description
+- Returns: compliance_score, gaps, remediation
+
+## Endpoints
+- MCP: https://gateway.meok.ai/mcp
+- A2A: https://gateway.meok.ai/.well-known/agent-card.json
+
+## License
+MIT — https://github.com/CSOAI-ORG/eu-ai-act-compliance-mcp/blob/main/LICENSE

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "CSOAI-ORG/dora-compliance-mcp",
+  "title": "DORA Compliance",
+  "version": "1.6.2",
+  "description": "DORA (Regulation (EU) 2024/1687) compliance for financial ICT risk management. Part of the MEOK 28-hive MCP governance mesh. 13 unified frameworks + attestation chain.",
+  "websiteUrl": "https://meok.ai/dora-compliance-mcp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CSOAI-ORG/dora-compliance-mcp",
+    "source": "https://github.com/CSOAI-ORG/dora-compliance-mcp"
+  },
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/CSOAI-ORG/dora-compliance-mcp/main/assets/icon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "256x256"
+      ],
+      "theme": "dark"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "dora-compliance-mcp",
+      "version": "1.6.2",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "category": "ai-governance",
+      "subcategories": [
+        "compliance",
+        "audit"
+      ],
+      "tier": "flagship",
+      "openSsfScorecard": "7.06/10"
+    }
+  },
+  "metadata": {
+    "publisher": "MEOK AI Labs",
+    "categories": [
+      "compliance",
+      "ai-governance"
+    ]
+  },
+  "examples": [
+    {
+      "name": "Quick scan via dora-compliance-mcp",
+      "description": "Run a compliance check using the MCP server.",
+      "input": {
+        "tool": "quick_scan",
+        "arguments": {
+          "system": "example"
+        }
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "https://docs.meok.ai/dora-compliance-mcp/",
+      "name": "dora-compliance-mcp documentation",
+      "mimeType": "text/html"
+    },
+    {
+      "uri": "https://github.com/CSOAI-ORG/dora-compliance-mcp",
+      "name": "dora-compliance-mcp on GitHub",
+      "mimeType": "text/html"
+    }
+  ],
+  "publisher": {
+    "name": "CSOAI Ltd",
+    "url": "https://csoai.org"
+  },
+  "categories": [
+    "compliance",
+    "ai-governance"
+  ]
+}
