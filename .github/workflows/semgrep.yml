@@ -1,0 +1,91 @@
+name: semgrep
+
+# Second SAST tool — runs Semgrep with the p/security-audit and p/owasp-top-ten
+# rulesets. Complements CodeQL (.github/workflows/codeql.yml) and gives the
+# OpenSSF SAST + SAST-Actions checks a reliable 10/10.
+#
+# We install semgrep via pip (not via a 3rd-party action) because
+# returntocorp/semgrep-action is deprecated as of 2024-08 — Semgrep's own
+# recommendation is `pip install semgrep` + `semgrep ci` (see
+# https://github.com/returntocorp/semgrep-action#deprecation-notice).
+#
+# Scoped permissions: read-only on contents; we do not upload to
+# security-events (would need write perms + confirm the org has GHAS enabled).
+# SARIF is stashed as an artifact for the maintainer to review.
+
+on:
+  push:
+    branches: [main, "feat/*", "chore/*", "fix/*"]
+    paths:
+      - "agentaudit/**"
+      - ".github/workflows/semgrep.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "agentaudit/**"
+      - ".github/workflows/semgrep.yml"
+  schedule:
+    # Weekly on Mondays at 07:14 UTC (off-the-hour, after the scorecard cron).
+    - cron: "14 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    name: semgrep (agentaudit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        with:
+          python-version: "3.11"
+
+      - name: Install semgrep
+        # Pinned for reproducibility. Semgrep ships monthly; bump via the
+        # dependabot github-actions update (added in this PR) once a month.
+        run: |
+          python -m pip install --upgrade pip
+          pip install semgrep==1.165.0
+
+      - name: Run semgrep (security-audit + owasp-top-ten + python + secrets)
+        # --error would exit non-zero on findings; we keep the run as an
+        # advisory (continue-on-error) for the first push and flip it to
+        # --error once a maintainer has triaged the initial SARIF.
+        # --metrics=off disables phoning home; the keystone does the same.
+        # Scope to agentaudit/ only — the gateway has its own semgrep pass.
+        run: |
+          semgrep \
+            --config p/security-audit \
+            --config p/owasp-top-ten \
+            --config p/python \
+            --config p/secrets \
+            --metrics=off \
+            agentaudit/
+        continue-on-error: true
+
+      - name: Archive SARIF (informational)
+        if: always()
+        run: |
+          semgrep \
+            --config p/security-audit \
+            --config p/owasp-top-ten \
+            --config p/python \
+            --config p/secrets \
+            --sarif --output=semgrep.sarif \
+            --metrics=off \
+            agentaudit/ || true
+        continue-on-error: true
+
+      - name: Upload SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: semgrep-sarif
+          path: semgrep.sarif
+          retention-days: 30

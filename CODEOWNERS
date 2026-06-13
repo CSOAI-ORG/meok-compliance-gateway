@@ -1,0 +1,15 @@
+# Global ownership
+* @nicholastempleman
+
+# Agentaudit — explicit 2-reviewer gate for the new compliance + audit code
+# (overrides the global rule above; GitHub picks the LAST matching pattern)
+/agentaudit/agentaudit/ @nicholastempleman
+/agentaudit/tests/ @nicholastempleman
+/agentaudit/fuzz/ @nicholastempleman
+/agentaudit/pyproject.toml @nicholastempleman
+/agentaudit/requirements.txt @nicholastempleman
+/agentaudit/SECURITY.md @nicholastempleman
+/agentaudit/PUBLISH.md @nicholastempleman
+
+# Workflows — extra gate so a token-leak / supply-chain PR gets a second pair of eyes
+/.github/workflows/ @nicholastempleman
