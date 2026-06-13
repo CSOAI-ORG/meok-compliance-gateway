@@ -34,4 +34,49 @@ Full source-of-truth + per-surface copy: [KEY_DIFFERENTIATORS.md](./KEY_DIFFEREN
 
 > ⚠️ **2026-07-28 MCP spec freeze in ~8 weeks** — this gateway tracks the 2025-03-26 spec. Migration plan: see [LISTING.md § MCP Spec Freeze](./LISTING.md#-mcp-2026-07-28-spec-freeze-8-weeks).
 
+## Installation
+
+### PyPI (recommended)
+```bash
+pip install agentaudit
+agentaudit-server
+```
+
+### Docker
+```bash
+docker run -p 8000:8000 ghcr.io/csoai-org/meok-compliance-gateway
+```
+
+### Smithery
+```bash
+smithery add meok-compliance-gateway
+```
+
+## Quick Start
+
+```python
+from agentaudit import server
+
+# Or run via MCP client:
+# mcp.servers/meok-compliance-gateway
+
+# Quick compliance scan:
+# quick_scan(system="AI chatbot that processes customer data")
+```
+
+## Endpoints
+
+| Endpoint | Purpose |
+|----------|---------|
+| `/mcp` | MCP streamable-HTTP (POST initialize) |
+| `/health` | Health check (GET) |
+| `/healthz` | Docker health probe (GET) |
+| `/.well-known/agent-card.json` | A2A discovery |
+| `/.well-known/mcp-server` | MCP registry card |
+
+## Documentation
+- [Full API Reference](https://docs.meok.ai/meok-compliance-gateway)
+- [MCP Registry Listing](https://github.com/CSOAI-ORG/meok-compliance-gateway/blob/main/server.json)
+- [LLM Discovery](https://github.com/CSOAI-ORG/meok-compliance-gateway/blob/main/llms.txt)
+
 MIT-licensed. MEOK AI Labs (CSOAI LTD, UK CH 16939677).
