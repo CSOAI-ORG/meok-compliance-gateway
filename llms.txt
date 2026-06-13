@@ -1,0 +1,81 @@
+# meok-compliance-gateway
+> MEOK Compliance Gateway — 13 unified governance frameworks as MCP tools. Streamable-HTTP gateway for EU AI Act, GDPR, HIPAA, DORA, NIS2, CRA, CSRD, ISO 42001, ISO 27001, SOC 2, NIST AI RMF, ESG, and supply-chain compliance. By MEOK AI Labs.
+
+## Install
+pip install agentaudit
+
+## Auth
+- Free tier: 100 calls/month, no API key needed
+- Pro tier: unlimited, set MEOK_API_KEY env var
+- Business tier: team features + x402 payments
+
+## Tools
+
+### quick_scan
+Instant compliance check against 13 frameworks from a one-sentence system description. No API key required for free tier.
+- `system` (str, required): One-sentence description of the AI system
+- Returns: compliance_status, frameworks_impacted, top_3_obligations, deadline_days_remaining
+
+### deadline_check
+All regulatory deadlines across 13 frameworks with days remaining.
+- Returns: List of milestone dates with days_remaining and applicable articles/articles
+
+### framework_scan
+Deep compliance assessment for a specific framework.
+- `framework` (str, required): EU AI Act | GDPR | HIPAA | DORA | NIS2 | CRA | CSRD
+- `system` (str, required): System description
+- Returns: compliance_score, obligations, gaps, remediation_steps
+
+### expert_list
+List the expert models available for compliance tasks (6 compliance specialists).
+- Returns: List of expert names and specializations
+
+### audit_anchor
+Create an auditable anchor point with SHA-256 hash chain.
+- `data` (object, required): Data to anchor
+- Returns: anchor_hash, timestamp, previous_anchor
+
+### healthz
+Gateway health check endpoint (no auth required).
+- Returns: status, version, frameworks_loaded
+
+## Endpoints
+
+### streamable-HTTP
+https://gateway.meok.ai/mcp
+
+### A2A Agent Card
+https://gateway.meok.ai/.well-known/agent-card.json
+
+### MCP Registry Server Card
+https://github.com/CSOAI-ORG/meok-compliance-gateway/blob/main/.well-known/mcp-server
+
+### Health
+https://gateway.meok.ai/health
+
+## Frameworks Available
+- EU AI Act (Regulation (EU) 2024/1689)
+- GDPR (Regulation (EU) 2016/679)
+- HIPAA (Health Insurance Portability and Accountability Act)
+- DORA (Regulation (EU) 2024/1687)
+- NIS2 (Directive (EU) 2022/2555)
+- CRA (Regulation (EU) 2024/2847)
+- CSRD (Regulation (EU) 2024/2848)
+- ISO 42001 (AI Management System)
+- ISO 27001 (Information Security)
+- SOC 2 (Trust Services Criteria)
+- NIST AI RMF
+- ESG Disclosure
+- Supply-chain Compliance
+
+## x402 Payments
+Some tools require USDC micro-payments via x402 protocol.
+Set `X402_ENABLED=1` and `X402_PAY_TO` to enable.
+
+## License
+MIT — https://github.com/CSOAI-ORG/meok-compliance-gateway/blob/main/LICENSE
+
+## Support
+- Docs: https://docs.meok.ai/meok-compliance-gateway
+- Issues: https://github.com/CSOAI-ORG/meok-compliance-gateway/issues
+- Security: security@meok.ai
