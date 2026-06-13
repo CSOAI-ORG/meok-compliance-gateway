@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "meok-compliance-gateway"
+readme = "README.md"
+version = "0.2.0"
+description = "MEOK Compliance Gateway — the keystone of the MEOK / CSOAI / SOV3 fleet. Ed25519 sigils + x402 per-call USDC billing + audit-anchor chains + 6 MCP tools (4 free, 2 paywalled). Built by MEOK AI Labs."
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+authors = [{name = "MEOK AI Labs", email = "hello@meok.ai"}]
+keywords = ["mcp", "mcp-server", "model-context-protocol", "ai-governance", "compliance", "ed25519", "sigil", "x402", "usdc", "audit", "meok"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "mcp==1.27.2",
+    "uvicorn[standard]==0.49.0",
+    "cryptography==46.0.7",
+    "httpx>=0.27.0",
+    "x402[evm]>=0.1.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0", "hypothesis>=6.0", "pyyaml>=6.0"]
+fuzz = ["hypothesis>=6.0"]
+
+[project.urls]
+Homepage = "https://meok.ai"
+Repository = "https://github.com/CSOAI-ORG/meok-compliance-gateway"
+
+[project.entry-points."meok.hives"]
+keystone = "server:mcp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+only-include = ["server.py", "http_server.py", "meok_crown.py", "meok_x402.py", "meok_horus.py", "meok_secrets.py", "meok_rate_limit.py", "meok_x402_utils.py", "*.json", "*.txt"]
+
+[tool.hatch.build.targets.sdist]
+include = ["*"]
+exclude = ["tests/*", ".github/*", "deploy/*", "scripts/*", "research/*", "agentaudit/*", "assets/*", "docs/*"]
+
+[project.scripts]
+meok-compliance-gateway = "http_server:main"

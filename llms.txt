@@ -1,81 +1,139 @@
 # meok-compliance-gateway
-> MEOK Compliance Gateway — 13 unified governance frameworks as MCP tools. Streamable-HTTP gateway for EU AI Act, GDPR, HIPAA, DORA, NIS2, CRA, CSRD, ISO 42001, ISO 27001, SOC 2, NIST AI RMF, ESG, and supply-chain compliance. By MEOK AI Labs.
+> The keystone of the MEOK / CSOAI / SOV3 fleet. Ed25519 sigils (crown) + x402 per-call USDC billing (meok_x402) + tamper-evident audit anchors + 6 MCP tools (4 free, 2 paywalled). Streamable-HTTP at `/mcp`. Built by MEOK AI Labs.
 
 ## Install
-pip install agentaudit
+
+```bash
+# Recommended (any package manager works)
+pip install meok-compliance-gateway
+# or
+uv add meok-compliance-gateway
+```
+
+## Run
+
+```bash
+# Local dev
+X402_ENABLED=0 PORT=8000 python -m http_server
+
+# Production with x402 paid tools (requires Coinbase CDP wallet)
+export X402_ENABLED=1
+export X402_PAY_TO=0xYourBaseWallet
+export X402_PRICE=$0.05
+PORT=8000 python -m http_server
+```
 
 ## Auth
-- Free tier: 100 calls/month, no API key needed
-- Pro tier: unlimited, set MEOK_API_KEY env var
-- Business tier: team features + x402 payments
+
+| Tier | Auth | Limits |
+|------|------|--------|
+| Free | None | 5 calls/day (list_experts), 20 calls/day (spending_report, audit_anchor), unlimited health |
+| x402 Paid | USDC on Base mainnet (`X402_PAY_TO`) | Pay-per-call, $0.05 default |
+| AgentCard | Bearer header (`X-MEOK-Key`) | All tools |
+
+Free tools carry no `COST WARNING`. Paid tools carry `COST WARNING: $0.05 per call —` per AWS Marketplace convention.
 
 ## Tools
 
-### quick_scan
-Instant compliance check against 13 frameworks from a one-sentence system description. No API key required for free tier.
-- `system` (str, required): One-sentence description of the AI system
-- Returns: compliance_status, frameworks_impacted, top_3_obligations, deadline_days_remaining
+### list_experts
+List the 14 OpenScore safety experts (free, top-of-funnel, 5 calls/day per caller).
+- `domain` (str, optional): Filter to one of `compliance`, `security`, `governance`, `monetization`, `verification`
+- Returns: List of experts with `id`, `domain`, `name`, `capabilities`, `mcp_server`
+- Use when: Building an agent that needs to know which MEOK MCP server to call for a given compliance question
 
-### deadline_check
-All regulatory deadlines across 13 frameworks with days remaining.
-- Returns: List of milestone dates with days_remaining and applicable articles/articles
-
-### framework_scan
-Deep compliance assessment for a specific framework.
-- `framework` (str, required): EU AI Act | GDPR | HIPAA | DORA | NIS2 | CRA | CSRD
-- `system` (str, required): System description
-- Returns: compliance_score, obligations, gaps, remediation_steps
-
-### expert_list
-List the expert models available for compliance tasks (6 compliance specialists).
-- Returns: List of expert names and specializations
+### spending_report
+Return the keystone's x402 spending report (free observability, 20 calls/day per caller).
+- No parameters
+- Returns: total_calls, total_spent, by_tool, by_caller, last_24h
+- Use when: Auditing how much your agent has spent on x402 calls
 
 ### audit_anchor
-Create an auditable anchor point with SHA-256 hash chain.
-- `data` (object, required): Data to anchor
-- Returns: anchor_hash, timestamp, previous_anchor
+Return the keystone's tamper-evident audit-anchor chain tail + head (free observability).
+- No parameters
+- Returns: chain_length, head, tail, byzantine_quorum
+- Use when: Verifying the integrity of a sequence of signed receipts
 
-### healthz
-Gateway health check endpoint (no auth required).
-- Returns: status, version, frameworks_loaded
+### health
+Keystone health + version info (free, no payment required).
+- No parameters
+- Returns: status, server, x402_enabled, x402_network, x402_pay_to_set, experts_seeded, ts
+- Use when: Heartbeat, deployment verification, or before adding to a load balancer
 
-## Endpoints
+### sign_receipt
+**COST WARNING: $0.05 per call** — Sign a SHA-256 hash and return a Signet receipt.
+- `payload_hex` (str, required): Hex-encoded SHA-256 hash to sign
+- Returns: attestation_id, signature, kid, ts, chain_position, head_after
+- Use when: You need a portable, auditable proof of any computation result
 
-### streamable-HTTP
-https://gateway.meok.ai/mcp
+### verify_receipt
+**COST WARNING: $0.05 per call** — Verify a Signet receipt by id and re-compute the HMAC.
+- `attestation_id` (str, required): The receipt ID returned by sign_receipt
+- Returns: is_valid, computed_signature, recorded_signature, head_at_verify, verified_at
+- Use when: An auditor needs to confirm a receipt is genuine and not tampered
 
-### A2A Agent Card
-https://gateway.meok.ai/.well-known/agent-card.json
+## Architecture
 
-### MCP Registry Server Card
-https://github.com/CSOAI-ORG/meok-compliance-gateway/blob/main/.well-known/mcp-server
+The keystone is the billing + observability surface of the MEOK fleet:
 
-### Health
-https://gateway.meok.ai/health
+```
+┌─────────────────────────────────────────────────────────┐
+│  meok-compliance-gateway (this repo)                   │
+│  ├── http_server.py: streamable-HTTP on $PORT          │
+│  ├── server.py: FastMCP singleton (6 tools)            │
+│  ├── meok_crown.py: Ed25519 sigil + chain + revocation │
+│  ├── meok_x402.py: @paywalled per-call USDC billing    │
+│  ├── meok_secrets.py: keyring + 0640 secrets wrapper  │
+│  ├── meok_horus.py: oversight plane (Art. 14/12/72)   │
+│  ├── meok_rate_limit.py: per-tool / per-caller limits  │
+│  └── tests/: 73 tests, all green, hypothesis-fuzzed     │
+└─────────────────────────────────────────────────────────┘
+           ▲
+           │ wraps any flagship MCP via `mcp-wrapper.py`
+           │
+┌─────────────────────────────────────────────────────────┐
+│  12 flagship compliance MCPs (200+ in fleet)          │
+│  eu-ai-act, dora, nis2, cra, gdpr, hipaa, soc2, iso,   │
+│  bias, crosswalk, mcp-injection-scan, governance-engine│
+└─────────────────────────────────────────────────────────┘
+```
 
-## Frameworks Available
-- EU AI Act (Regulation (EU) 2024/1689)
-- GDPR (Regulation (EU) 2016/679)
-- HIPAA (Health Insurance Portability and Accountability Act)
-- DORA (Regulation (EU) 2024/1687)
-- NIS2 (Directive (EU) 2022/2555)
-- CRA (Regulation (EU) 2024/2847)
-- CSRD (Regulation (EU) 2024/2848)
-- ISO 42001 (AI Management System)
-- ISO 27001 (Information Security)
-- SOC 2 (Trust Services Criteria)
-- NIST AI RMF
-- ESG Disclosure
-- Supply-chain Compliance
+The keystone pins `mcp==1.27.2` (exact). Flagships pin `mcp>=1.0.0` (loose). The MCP 2026-07-28 stateless spec freeze is 16 days out — both must migrate in lockstep.
 
-## x402 Payments
-Some tools require USDC micro-payments via x402 protocol.
-Set `X402_ENABLED=1` and `X402_PAY_TO` to enable.
+## Production deployment
 
-## License
-MIT — https://github.com/CSOAI-ORG/meok-compliance-gateway/blob/main/LICENSE
+```bash
+# Docker (canonical)
+docker build -t meok-compliance-gateway -f Dockerfile.glama .
+docker run -p 8000:8000 \
+  -e X402_ENABLED=1 \
+  -e X402_PAY_TO=0xYourBaseWallet \
+  -e X402_PRICE=$0.05 \
+  -e X402_NETWORK=eip155:8453 \
+  -e MEOK_ATTESTATION_KEY=$(cat signing.key) \
+  meok-compliance-gateway
 
-## Support
-- Docs: https://docs.meok.ai/meok-compliance-gateway
-- Issues: https://github.com/CSOAI-ORG/meok-compliance-gateway/issues
-- Security: security@meok.ai
+# Or Cloud Run / AgentCore (Smithery / Glama)
+# See Dockerfile.patch + GCP_DEPLOY.md
+```
+
+## Pricing (the keystone is the billing surface)
+
+- **Free**: list_experts, spending_report, audit_anchor, health
+- **$0.05/call USDC** (x402): sign_receipt, verify_receipt
+- **Free self-host** (X402_ENABLED=0 default): all tools work without payment
+
+## Compliance
+
+- **OpenSSF Scorecard**: 5.1/10 (best in fleet, 14 repos audited 2026-06-06)
+- **Security policy**: SECURITY.md with `security@meok.ai` reporting, 48h SLA
+- **SOC 2 / EU AI Act**: Article 11 (technical docs), Article 12 (automatic logs), Article 14 (human oversight) all implemented
+- **AGPL-free**: MIT licensed, all dependencies MIT/Apache-2.0
+
+## Links
+
+- PyPI: `pip install meok-compliance-gateway`
+- MEOK AI Labs: https://meok.ai
+- CSOAI standards body: https://csoai.org
+- GitHub: https://github.com/CSOAI-ORG/meok-compliance-gateway
+
+Built by Nick Templeman and the MEOK AI Labs team. T-22 days to July 4 Black Swan launch.
