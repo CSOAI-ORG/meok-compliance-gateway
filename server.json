@@ -3,7 +3,7 @@
   "name": "CSOAI-ORG/meok-compliance-gateway",
   "title": "MEOK Compliance Gateway",
   "version": "1.0.0",
-  "description": "MEOK Compliance Gateway — streamable-HTTP gateway for the CSOAI-ORG 28-hive MCP governance mesh. 13 unified governance frameworks (EU AI Act, GDPR, HIPAA, DORA, NIS2, CRA, CSRD, ESG, ISO 42001, ISO 27001, SOC 2, NIST AI RMF, supply-chain) + HMAC-SHA256 attestation chain + x402 USDC paywall. Built for cloud marketplaces (AWS Bedrock AgentCore, Google Cloud Run, Azure Container Apps, Smithery, MCP.so, Glama, PulseMCP). First unified AI governance MCP — 13/15 GRC vendors have no MCP exposure (per sov3-mcp-master-audit-2026-06-08).",
+  "description": "MEOK Compliance Gateway \u2014 streamable-HTTP gateway for the CSOAI-ORG 28-hive MCP governance mesh. 13 unified governance frameworks (EU AI Act, GDPR, HIPAA, DORA, NIS2, CRA, CSRD, ESG, ISO 42001, ISO 27001, SOC 2, NIST AI RMF, supply-chain) + HMAC-SHA256 attestation chain + x402 USDC paywall. Built for cloud marketplaces (AWS Bedrock AgentCore, Google Cloud Run, Azure Container Apps, Smithery, MCP.so, Glama, PulseMCP). First unified AI governance MCP \u2014 13/15 GRC vendors have no MCP exposure (per sov3-mcp-master-audit-2026-06-08).",
   "websiteUrl": "https://meok.ai",
   "repository": {
     "type": "git",
@@ -14,7 +14,9 @@
     {
       "src": "https://raw.githubusercontent.com/CSOAI-ORG/meok-compliance-gateway/main/assets/keystone-icon.svg",
       "mimeType": "image/svg+xml",
-      "sizes": ["256x256"],
+      "sizes": [
+        "256x256"
+      ],
       "theme": "dark"
     }
   ],
@@ -29,7 +31,7 @@
       "environmentVariables": [
         {
           "name": "MEOK_ATTESTATION_KEY",
-          "description": "HMAC-SHA256 attestation key. Resolved at startup from AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault, stdlib keyring, or chmod-600 file fallback. Required — the gateway refuses to start without it (per CRITICAL_FIXES_2026-06-08.md Fix #3).",
+          "description": "HMAC-SHA256 attestation key. Resolved at startup from AWS Secrets Manager, GCP Secret Manager, HashiCorp Vault, stdlib keyring, or chmod-600 file fallback. Required \u2014 the gateway refuses to start without it (per CRITICAL_FIXES_2026-06-08.md Fix #3).",
           "isRequired": true,
           "isSecret": true
         },
@@ -80,7 +82,50 @@
         "ETSI TS 104 008 Q3 2026 (T-90+)",
         "Colorado ADMT 2027-01-01 (T-207)"
       ],
-      "transportVersions": ["MCP 1.27.2", "MCP 2026-07-28 draft compatible"]
+      "transportVersions": [
+        "MCP 1.27.2",
+        "MCP 2026-07-28 draft compatible"
+      ]
     }
-  }
+  },
+  "metadata": {
+    "publisher": "MEOK AI Labs",
+    "categories": [
+      "compliance",
+      "ai-governance",
+      "regulation"
+    ]
+  },
+  "examples": [
+    {
+      "name": "Quick scan via meok-compliance-gateway",
+      "description": "Run a basic compliance check using the meok-compliance-gateway MCP server.",
+      "input": {
+        "tool": "quick_scan",
+        "arguments": {
+          "system": "example"
+        }
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "https://docs.meok.ai/meok-compliance-gateway/",
+      "name": "meok-compliance-gateway documentation",
+      "mimeType": "text/html"
+    },
+    {
+      "uri": "https://github.com/CSOAI-ORG/meok-compliance-gateway",
+      "name": "meok-compliance-gateway on GitHub",
+      "mimeType": "text/html"
+    }
+  ],
+  "publisher": {
+    "name": "CSOAI Ltd",
+    "url": "https://csoai.org"
+  },
+  "categories": [
+    "compliance",
+    "ai-governance"
+  ]
 }

@@ -50,9 +50,10 @@ session, duplicate work. Follow them exactly.
 
 ## Current open work (update this list when it changes)
 
-- PR board: gateway #5 (x402 + hardening), gateway #6 (AgentAudit A2A proxy),
-  eu-ai-act #6, dora #2, nis2 #1, cra #1 — all green + MERGEABLE (verified
-  2026-06-06), awaiting Nick's review. Do not merge.
+- PR board: gateway #20 (agentaudit Stage 6) — MERGEABLE, awaiting Nick's review. Do not merge.
+- **MERGED (verified 2026-06-06):** gateway #5 (x402 + hardening) ✓, gateway #6 (AgentAudit A2A proxy) ✓
+- In flight on `fix/health-and-agent-card-routes`: health endpoint + agent card routing improvements
+- Current branch: `fix/health-and-agent-card-routes` (3 files modified, awaiting polish)
 - In flight on `feat/agentaudit-server`: x402 paywire test coverage (a crashed
   session's conftest/test_x402 survive in stash@{0} parent `241a5a3` — see
   session memory `agentaudit-paywire-tests`); dependabot + codeql + .gitignore
