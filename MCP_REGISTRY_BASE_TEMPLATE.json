@@ -1,0 +1,77 @@
+# MCP REGISTRY BASE TEMPLATE
+# Copy this structure to all 14 flagship repos
+
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "CSOAI-ORG/{repo-name}",
+  "title": "{TITLE} Compliance MCP",
+  "version": "1.8.3",
+  "description": "{Title} compliance MCP — 4 tools for regulatory assessment. Part of the MEOK 28-hive governance mesh. 13 unified frameworks + attestation chain.",
+  "websiteUrl": "https://meok.ai/{repo-name}",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CSOAI-ORG/{repo-name}",
+    "source": "https://github.com/CSOAI-ORG/{repo-name}"
+  },
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/CSOAI-ORG/{repo-name}/main/assets/icon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["256x256"],
+      "theme": "dark"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "{repo-name}",
+      "version": "1.8.3",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "category": "ai-governance",
+      "subcategories": ["compliance", "audit"],
+      "tier": "flagship",
+      "openSsfScorecard": "7.06/10",
+      "frameworks": ["{FRAMEWORK}"],
+      "regulatoryDeadlines": ["EU AI Act 2026-08-02"]
+    }
+  },
+  "metadata": {
+    "publisher": "MEOK AI Labs",
+    "categories": ["compliance", "ai-governance"]
+  },
+  "examples": [
+    {
+      "name": "Quick scan via {repo-name}",
+      "description": "Run a basic compliance check using the MCP server.",
+      "input": {
+        "tool": "quick_scan",
+        "arguments": {
+          "system": "example"
+        }
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "https://docs.meok.ai/{repo-name}/",
+      "name": "{repo-name} documentation",
+      "mimeType": "text/html"
+    },
+    {
+      "uri": "https://github.com/CSOAI-ORG/{repo-name}",
+      "name": "{repo-name} on GitHub",
+      "mimeType": "text/html"
+    }
+  ],
+  "publisher": {
+    "name": "CSOAI Ltd",
+    "url": "https://csoai.org"
+  },
+  "categories": ["compliance", "ai-governance"]
+}
