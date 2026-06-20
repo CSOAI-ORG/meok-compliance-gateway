@@ -11,5 +11,5 @@
 # would resolve to a newer SDK, the gateway is forced to mcp==1.27.2.
 #
 # 2026-07-28 spec migration: bump BOTH files in lockstep, in a fleet-sync PR.
-mcp==1.27.2
+mcp==1.28.0
 uvicorn==0.49.0
