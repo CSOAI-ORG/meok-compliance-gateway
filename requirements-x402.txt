@@ -4,4 +4,4 @@
 # [evm] pulls web3/eth-account for verifying "exact" USDC payments on Base. The free
 # gateway never installs this; meok_x402's verify/settle imports it lazily, and the
 # challenge path (build_challenge) needs only the base x402 schemas.
-x402[evm]==2.13.0
+x402[evm]==2.13.1
