@@ -37,6 +37,8 @@ def fresh_server():
     Sets MEOK_ATTESTATION_KEY to a stable value so sign + verify agree.
     Clears the in-process free-tier counter so cap tests are isolated."""
     os.environ.pop("X402_ENABLED", None)
+    os.environ.pop("X402_PAY_TO", None)
+    os.environ.pop("X402_NETWORK", None)
     # 64 hex chars = 32 bytes (HMAC-SHA256 key length). Stable across the
     # test run so sign_receipt + verify_receipt use the same key.
     os.environ["MEOK_ATTESTATION_KEY"] = "deadbeef" * 8
