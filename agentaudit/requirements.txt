@@ -1,4 +1,4 @@
 # Gateway runtime — exact pins for reproducible builds.
 # Verified set: mcp 1.27.2 (see AGENTS.md pin convention).
-mcp==1.28.0
+mcp==1.28.1
 pydantic>=2.0.0
