@@ -18,4 +18,4 @@ uvicorn[standard]==0.50.0
 pytest
 # meok_crown.py — Ed25519 root-of-trust + sigil seal (the asymmetric attestation
 # layer; HMAC in meok_x402.py stays for x402 receipts). See CROWN_ROOT_KEY_HARDENING_SPEC.md.
-cryptography==46.0.7
+cryptography==49.0.0
