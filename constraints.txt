@@ -12,4 +12,4 @@
 #
 # 2026-07-28 spec migration: bump BOTH files in lockstep, in a fleet-sync PR.
 mcp==1.28.1
-uvicorn==0.50.0
+uvicorn==0.51.0

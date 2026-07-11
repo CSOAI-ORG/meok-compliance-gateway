@@ -14,7 +14,7 @@
 # can only assert `import OK` — which we already proved doesn't catch
 # missing tools, missing env, or broken decorators.
 mcp==1.28.1
-uvicorn[standard]==0.50.0
+uvicorn[standard]==0.51.0
 pytest
 # meok_crown.py — Ed25519 root-of-trust + sigil seal (the asymmetric attestation
 # layer; HMAC in meok_x402.py stays for x402 receipts). See CROWN_ROOT_KEY_HARDENING_SPEC.md.
