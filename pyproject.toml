@@ -19,7 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "mcp==2.0.0",
-    "uvicorn[standard]==0.52.0",
+    "uvicorn[standard]==0.52.1",
     "cryptography==46.0.7",
     "httpx>=0.27.0",
     "x402[evm]>=0.1.0",
