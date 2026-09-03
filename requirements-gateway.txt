@@ -4,7 +4,13 @@
 # (`from mcp.server.fastmcp import FastMCP`), NOT the standalone `fastmcp`
 # package — so only `mcp` + `uvicorn` matter here. http_server.py imports
 # `mcp.server.transport_security` and calls `mcp.custom_route` / `mcp.run`,
-# all verified present in mcp 1.27.2.
+# all verified present in mcp 1.28.1.
+#
+# DO NOT bump `mcp` to 2.x without migrating server.py first. mcp 2.x removed
+# `mcp.server.fastmcp` (FastMCP was renamed to `mcp.server.mcpserver.MCPServer`),
+# so on 2.x `import server` raises ModuleNotFoundError and the gateway cannot
+# boot at all. Dependabot #38 (2026-08-08) did exactly that and every
+# test-gateway / fleet-e2e / agentaudit-ci run has been red since.
 #
 # 2026-07-28 spec migration is an `mcp` SDK upgrade (+ flagship code), tracked
 # in LISTING.md — bump the pin below deliberately when the SDK ships support.
@@ -13,7 +19,7 @@
 # tests as a guard against `server.py` regressions. Without it the workflow
 # can only assert `import OK` — which we already proved doesn't catch
 # missing tools, missing env, or broken decorators.
-mcp==2.1.1
+mcp==1.28.1
 uvicorn[standard]==0.52.4
 pytest
 # meok_crown.py — Ed25519 root-of-trust + sigil seal (the asymmetric attestation

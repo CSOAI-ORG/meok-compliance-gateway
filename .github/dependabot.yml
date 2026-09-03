@@ -11,6 +11,13 @@ updates:
     groups:
       python-deps:
         patterns: ["*"]
+    ignore:
+      # mcp 2.x removed `mcp.server.fastmcp`, which server.py imports, so a
+      # major bump makes the gateway un-bootable. Dependabot #38 (2026-08-08)
+      # merged exactly that and took test-gateway, fleet-e2e and agentaudit-ci
+      # red for 3+ weeks. Lift this once server.py moves to MCPServer.
+      - dependency-name: "mcp"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"

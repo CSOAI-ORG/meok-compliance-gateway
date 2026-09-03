@@ -8,8 +8,11 @@
 #
 # Used in CI as: pip install -c constraints.txt -r requirements-gateway.txt <flagship>
 # pip refuses to upgrade an exact pin, so even if a flagship's loose `mcp>=1.0.0`
-# would resolve to a newer SDK, the gateway is forced to mcp==1.27.2.
+# would resolve to a newer SDK, the gateway is forced to mcp==1.28.1.
+#
+# Must stay <2 until server.py migrates off `mcp.server.fastmcp` — see the
+# note in requirements-gateway.txt.
 #
 # 2026-07-28 spec migration: bump BOTH files in lockstep, in a fleet-sync PR.
-mcp==2.1.1
+mcp==1.28.1
 uvicorn==0.52.4
